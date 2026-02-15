@@ -276,53 +276,96 @@ const SECONDARY_TIERS: Tier[] = PRIMARY_TIERS.map((tier) => ({
 
 const GOVCLOUD_TIERS: Tier[] = [
   {
-    id: "gov-isolation",
-    label: "Isolation Boundary (FedRAMP High)",
-    color: "data-rose",
+    id: "gov-ingress",
+    label: "Internet Ingress",
+    color: "data-cyan",
     nodes: [
       {
-        id: "gov-boundary",
-        label: "GovCloud Isolation Boundary",
-        icon: ShieldCheck,
-        description: "Air-gapped environment with no shared SaaS components. FedRAMP High + IL5 compliant perimeter.",
+        id: "gov-internet",
+        label: "Internet Gateway",
+        icon: Globe,
+        description: "Public-facing endpoint with DDoS mitigation, TLS 1.3 termination, and IP allowlisting at the GovCloud boundary.",
         status: "healthy",
         metrics: [
-          { label: "Classification", value: "IL5" },
-          { label: "FedRAMP", value: "High" },
-          { label: "Shared Components", value: "0" },
+          { label: "Req/s", value: "2.1k" },
+          { label: "TLS", value: "1.3 only" },
+          { label: "IP Allowlist", value: "Enabled" },
         ],
       },
     ],
   },
   {
-    id: "gov-cicd",
-    label: "Dedicated CI/CD",
+    id: "gov-waf",
+    label: "GovCloud WAF",
+    color: "data-rose",
+    nodes: [
+      {
+        id: "gov-waf-node",
+        label: "GovCloud WAF",
+        icon: ShieldCheck,
+        description: "OWASP Top-10 ruleset, bot detection, rate limiting, and geo-blocking. FedRAMP High boundary enforcement.",
+        status: "healthy",
+        metrics: [
+          { label: "Rules", value: "186" },
+          { label: "Blocked/hr", value: "342" },
+          { label: "FedRAMP", value: "High" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "gov-lb",
+    label: "GovCloud Load Balancer",
+    color: "data-emerald",
+    nodes: [
+      {
+        id: "gov-lb-node",
+        label: "GovCloud Load Balancer",
+        icon: Globe,
+        description: "Dedicated ALB with mTLS, session affinity, and cross-AZ failover within the GovCloud partition.",
+        status: "healthy",
+        metrics: [
+          { label: "AZs", value: "3" },
+          { label: "mTLS", value: "Enforced" },
+          { label: "P99 Latency", value: "14ms" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "gov-k8s",
+    label: "GovCloud Kubernetes Cluster",
     color: "data-violet",
     nodes: [
       {
-        id: "gov-pipeline",
-        label: "Dedicated CI/CD Pipeline",
-        icon: GitBranch,
-        description: "Isolated build and deploy pipeline with STIG-hardened runners, air-gapped artifact registry, and SBOM generation.",
+        id: "gov-k8s-control",
+        label: "K8s Control Plane",
+        icon: Workflow,
+        description: "STIG-hardened EKS control plane with private API endpoint, OIDC auth, and Pod Security Standards enforced.",
         status: "healthy",
         metrics: [
-          { label: "Runners", value: "4" },
+          { label: "Version", value: "1.29" },
+          { label: "Nodes", value: "12" },
+          { label: "Namespaces", value: "8" },
+        ],
+      },
+      {
+        id: "gov-k8s-cicd",
+        label: "Dedicated CI/CD",
+        icon: GitBranch,
+        description: "In-cluster ArgoCD with air-gapped artifact registry, SBOM generation, and image signing verification.",
+        status: "healthy",
+        metrics: [
+          { label: "Pipelines", value: "6" },
           { label: "Last Deploy", value: "1h ago" },
           { label: "SBOM", value: "Verified" },
         ],
       },
-    ],
-  },
-  {
-    id: "gov-security",
-    label: "Dedicated Security",
-    color: "data-amber",
-    nodes: [
       {
-        id: "gov-kms",
+        id: "gov-k8s-kms",
         label: "Dedicated KMS",
         icon: KeyRound,
-        description: "FIPS 140-2 Level 3 HSM-backed key management. Customer-managed keys with automated rotation and audit.",
+        description: "FIPS 140-2 Level 3 HSM-backed secrets encryption. All etcd data encrypted with customer-managed keys.",
         status: "healthy",
         metrics: [
           { label: "FIPS Level", value: "L3" },
@@ -331,41 +374,22 @@ const GOVCLOUD_TIERS: Tier[] = [
         ],
       },
       {
-        id: "gov-monitoring",
+        id: "gov-k8s-monitoring",
         label: "Dedicated Monitoring",
         icon: MonitorCog,
-        description: "Isolated SIEM and observability stack. No telemetry leaves the GovCloud boundary.",
+        description: "In-cluster Prometheus + Grafana stack. No telemetry egress outside GovCloud boundary.",
         status: "healthy",
         metrics: [
-          { label: "Log Retention", value: "7yr" },
           { label: "Alerts", value: "62" },
+          { label: "Retention", value: "90d" },
           { label: "Egress", value: "None" },
         ],
       },
-    ],
-  },
-  {
-    id: "gov-compute",
-    label: "Dedicated Compute",
-    color: "data-cyan",
-    nodes: [
       {
-        id: "gov-gpu",
-        label: "Dedicated GPU Pool",
-        icon: Cpu,
-        description: "Isolated GPU fleet on dedicated hosts. No multi-tenant hardware. ITAR-compliant workload scheduling.",
-        status: "healthy",
-        metrics: [
-          { label: "GPUs", value: "8" },
-          { label: "Dedicated Hosts", value: "Yes" },
-          { label: "Tenancy", value: "Single" },
-        ],
-      },
-      {
-        id: "gov-model-registry",
+        id: "gov-k8s-registry",
         label: "Dedicated Model Registry",
         icon: Box,
-        description: "Air-gapped ML model storage with provenance tracking, vulnerability scanning, and export controls.",
+        description: "Air-gapped OCI registry for ML model artifacts with vulnerability scanning and ITAR export controls.",
         status: "healthy",
         metrics: [
           { label: "Models", value: "12" },
@@ -376,27 +400,66 @@ const GOVCLOUD_TIERS: Tier[] = [
     ],
   },
   {
-    id: "gov-data",
-    label: "Dedicated Data Layer",
-    color: "data-emerald",
+    id: "gov-db",
+    label: "GovCloud DB",
+    color: "data-amber",
     nodes: [
       {
-        id: "gov-db",
-        label: "Dedicated Database",
+        id: "gov-db-node",
+        label: "GovCloud Database",
         icon: Database,
-        description: "Isolated PostgreSQL with encryption at rest (AES-256-GCM), dedicated VPC, and no cross-region replication.",
+        description: "Isolated RDS PostgreSQL with AES-256-GCM encryption at rest, dedicated VPC, no cross-region replication.",
         status: "healthy",
         metrics: [
           { label: "Encryption", value: "AES-256" },
           { label: "Cross-Region", value: "Disabled" },
           { label: "Backup", value: "Hourly" },
+          { label: "Residency", value: "US-only" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "gov-gpu",
+    label: "GovCloud GPU Nodes",
+    color: "data-cyan",
+    nodes: [
+      {
+        id: "gov-gpu-node",
+        label: "GovCloud GPU Pool",
+        icon: Cpu,
+        description: "Isolated GPU fleet on dedicated hosts. Single-tenant hardware with ITAR-compliant workload scheduling.",
+        status: "healthy",
+        metrics: [
+          { label: "GPUs", value: "8" },
+          { label: "Tenancy", value: "Single" },
+          { label: "Dedicated Hosts", value: "Yes" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "gov-audit",
+    label: "GovCloud Audit Storage",
+    color: "data-emerald",
+    nodes: [
+      {
+        id: "gov-audit-node",
+        label: "GovCloud Audit Storage",
+        icon: FileText,
+        description: "Immutable, WORM-compliant audit log with 7-year retention, FIPS encryption, and chain-of-custody verification.",
+        status: "healthy",
+        metrics: [
+          { label: "Events/day", value: "12k" },
+          { label: "Retention", value: "7 years" },
+          { label: "WORM", value: "Enabled" },
         ],
       },
       {
-        id: "gov-storage",
-        label: "Dedicated Object Storage",
+        id: "gov-obj-storage",
+        label: "GovCloud Object Storage",
         icon: HardDrive,
-        description: "FIPS-encrypted object storage with bucket-level access policies and data residency enforcement.",
+        description: "FIPS-encrypted object storage for simulation results with bucket-level access policies and data residency enforcement.",
         status: "healthy",
         metrics: [
           { label: "Residency", value: "US-only" },
