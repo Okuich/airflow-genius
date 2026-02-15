@@ -2,6 +2,7 @@
 // Shared regulatory knowledge base for CFD compliance:
 //   • Standard Catalog (ASHRAE, ISO, OSHA, NFPA, ACGIH, TIA, NEBS, EN)
 //   • Rule Library (metric → threshold → severity)
+//   • Rule Domain Map (rule ID → airflow domain)
 //   • Metric ↔ Standard Links
 //   • Remediation Templates
 // ──────────────────────────────────────────────────────────────────────────
@@ -15,7 +16,7 @@ export type {
 } from "./types";
 
 export { STANDARD_CATALOG } from "./standard-catalog";
-export { RULE_LIBRARY } from "./rule-library";
+export { RULE_LIBRARY, RULE_DOMAIN_MAP } from "./rule-library";
 export { METRIC_STANDARD_LINKS, getStandardsForMetric, getMetricsForStandard } from "./metric-links";
 export { REMEDIATION_TEMPLATES, resolveRemediation } from "./remediation-templates";
 

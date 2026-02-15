@@ -8,7 +8,7 @@ import type {
   ComplianceCheckResult,
   AirflowComplianceDomain,
 } from "@/packages/types";
-import { RULE_LIBRARY, resolveRemediation } from "@/packages/compliance-knowledge";
+import { RULE_LIBRARY, RULE_DOMAIN_MAP, resolveRemediation } from "@/packages/compliance-knowledge";
 
 // ── Engine ─────────────────────────────────────────────────────────────────
 
@@ -21,7 +21,11 @@ export class ComplianceRulesEngine {
 
   /** Get all rules, optionally filtered by domain. */
   getRules(domain?: AirflowComplianceDomain): ComplianceRule[] {
-    return domain ? this.rules.filter((r) => r.domain === domain || r.domain === "general") : this.rules;
+    if (!domain) return this.rules;
+    return this.rules.filter((r) => {
+      const ruleDomain = RULE_DOMAIN_MAP[r.id];
+      return ruleDomain === domain || ruleDomain === "general";
+    });
   }
 
   /**
@@ -57,23 +61,17 @@ export class ComplianceRulesEngine {
 
   private checkRule(rule: ComplianceRule, value: number): boolean {
     switch (rule.operator) {
-      case "lt": return value < rule.threshold;
-      case "lte": return value <= rule.threshold;
-      case "gt": return value > rule.threshold;
-      case "gte": return value >= rule.threshold;
-      case "eq": return Math.abs(value - rule.threshold) < 1e-9;
-      case "between": return value >= rule.threshold && value <= (rule.upperBound ?? Infinity);
+      case ">": return value > rule.threshold;
+      case "<": return value < rule.threshold;
+      case ">=": return value >= rule.threshold;
+      case "<=": return value <= rule.threshold;
       default: return false;
     }
   }
 
   private formatDetail(rule: ComplianceRule, value: number, passed: boolean): string {
     const status = passed ? "PASS" : rule.severity.toUpperCase();
-    if (rule.operator === "between") {
-      return `[${status}] ${rule.description}: actual ${value.toFixed(2)} ${rule.unit}, required ${rule.threshold}–${rule.upperBound} ${rule.unit} (${rule.standard} §${rule.clause})`;
-    }
-    const opStr = { lt: "<", lte: "≤", gt: ">", gte: "≥", eq: "=", between: "" }[rule.operator];
-    return `[${status}] ${rule.description}: actual ${value.toFixed(2)} ${rule.unit}, required ${opStr} ${rule.threshold} ${rule.unit} (${rule.standard} §${rule.clause})`;
+    return `[${status}] ${rule.description}: actual ${value.toFixed(2)}, required ${rule.operator} ${rule.threshold} (${rule.authority} ${rule.standardCode})`;
   }
 
   private buildRemediation(rule: ComplianceRule, value: number): string {
@@ -83,11 +81,8 @@ export class ComplianceRulesEngine {
     return resolveRemediation(rule.metric, {
       gap,
       pct,
-      standard: rule.standard,
-      clause: rule.clause,
+      standardCode: `${rule.authority} ${rule.standardCode}`,
       threshold: rule.threshold,
-      upperBound: rule.upperBound,
-      unit: rule.unit,
     });
   }
 }

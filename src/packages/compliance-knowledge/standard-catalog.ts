@@ -7,6 +7,7 @@ import type { StandardDefinition } from "./types";
 export const STANDARD_CATALOG: StandardDefinition[] = [
   {
     standard: "ASHRAE_62.1",
+    authority: "ASHRAE",
     title: "ASHRAE Standard 62.1 — Ventilation for Acceptable Indoor Air Quality",
     description: "Ventilation for acceptable indoor air quality",
     issuingBody: "ASHRAE",
@@ -20,6 +21,7 @@ export const STANDARD_CATALOG: StandardDefinition[] = [
   },
   {
     standard: "ASHRAE_55",
+    authority: "ASHRAE",
     title: "ASHRAE Standard 55 — Thermal Environmental Conditions for Human Occupancy",
     description: "Thermal environmental conditions for human occupancy",
     issuingBody: "ASHRAE",
@@ -33,6 +35,7 @@ export const STANDARD_CATALOG: StandardDefinition[] = [
   },
   {
     standard: "ASHRAE_90.4",
+    authority: "ASHRAE",
     title: "ASHRAE Standard 90.4 — Energy Standard for Data Centers",
     description: "Energy standard for data centers",
     issuingBody: "ASHRAE",
@@ -45,6 +48,7 @@ export const STANDARD_CATALOG: StandardDefinition[] = [
   },
   {
     standard: "ISO_14644",
+    authority: "ISO",
     title: "ISO 14644 — Cleanrooms and Associated Controlled Environments",
     description: "Cleanrooms and associated controlled environments",
     issuingBody: "ISO",
@@ -59,6 +63,7 @@ export const STANDARD_CATALOG: StandardDefinition[] = [
   },
   {
     standard: "OSHA_PEL",
+    authority: "OSHA",
     title: "OSHA Permissible Exposure Limits (29 CFR 1910.1000)",
     description: "Permissible exposure limits for airborne substances",
     issuingBody: "OSHA",
@@ -72,6 +77,7 @@ export const STANDARD_CATALOG: StandardDefinition[] = [
   },
   {
     standard: "NFPA_45",
+    authority: "OSHA",
     title: "NFPA 45 — Fire Protection for Laboratories Using Chemicals",
     description: "Fire protection for laboratories using chemicals",
     issuingBody: "NFPA",
@@ -84,6 +90,7 @@ export const STANDARD_CATALOG: StandardDefinition[] = [
   },
   {
     standard: "EN_16798",
+    authority: "ISO",
     title: "EN 16798 — Energy Performance of Buildings — Ventilation",
     description: "European indoor environmental input parameters",
     issuingBody: "CEN",
@@ -97,6 +104,7 @@ export const STANDARD_CATALOG: StandardDefinition[] = [
   },
   {
     standard: "ACGIH_TLV",
+    authority: "OSHA",
     title: "ACGIH Threshold Limit Values for Chemical Substances",
     description: "Threshold limit values for chemical substances",
     issuingBody: "ACGIH",
@@ -110,6 +118,7 @@ export const STANDARD_CATALOG: StandardDefinition[] = [
   },
   {
     standard: "TIA_942",
+    authority: "ISO",
     title: "TIA-942 — Telecommunications Infrastructure Standard for Data Centers",
     description: "Telecommunications infrastructure standard for data centers",
     issuingBody: "TIA",
@@ -122,6 +131,7 @@ export const STANDARD_CATALOG: StandardDefinition[] = [
   },
   {
     standard: "NEBS_GR_3028",
+    authority: "ISO",
     title: "NEBS GR-3028 — Thermal Management of Telecom Equipment",
     description: "Thermal management for telecom equipment",
     issuingBody: "Telcordia",

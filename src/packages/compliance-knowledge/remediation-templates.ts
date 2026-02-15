@@ -1,6 +1,6 @@
 // ─── Remediation Templates ─────────────────────────────────────────────────
 // Parameterised remediation guidance for compliance violations.
-// Templates use placeholders: {gap}, {pct}, {standard}, {clause}, {threshold}, {unit}
+// Templates use placeholders: {gap}, {pct}, {standardCode}, {threshold}
 // ──────────────────────────────────────────────────────────────────────────
 
 import type { RemediationTemplate } from "./types";
@@ -8,22 +8,22 @@ import type { RemediationTemplate } from "./types";
 export const REMEDIATION_TEMPLATES: RemediationTemplate[] = [
   {
     metric: "outdoorAirRate",
-    template: "Increase outdoor air supply by at least {pct}% to meet {standard} §{clause}. Consider demand-controlled ventilation with CO₂ sensors.",
+    template: "Increase outdoor air supply by at least {pct}% to meet {standardCode}. Consider demand-controlled ventilation with CO₂ sensors.",
     category: "ventilation",
   },
   {
     metric: "exhaustAirflow",
-    template: "Increase exhaust rate to meet {standard} §{clause}. Current deficit: {gap} {unit}. Verify duct sizing and fan capacity.",
+    template: "Increase exhaust rate to meet {standardCode}. Current deficit: {gap}. Verify duct sizing and fan capacity.",
     category: "ventilation",
   },
   {
     metric: "operativeTemperature",
-    template: "Adjust HVAC setpoints to bring operative temperature within {threshold}–{upperBound} °C per {standard} §{clause}. Review solar loads and internal gains.",
+    template: "Adjust HVAC setpoints to bring operative temperature within range per {standardCode}. Review solar loads and internal gains.",
     category: "thermal",
   },
   {
     metric: "maxAirSpeed",
-    template: "Reduce diffuser throw distance or redirect supply to reduce air speed below {threshold} m/s per {standard} §{clause}.",
+    template: "Reduce diffuser throw distance or redirect supply to reduce air speed below {threshold} m/s per {standardCode}.",
     category: "thermal",
   },
   {
@@ -48,7 +48,7 @@ export const REMEDIATION_TEMPLATES: RemediationTemplate[] = [
   },
   {
     metric: "twaConcentration",
-    template: "8-hour TWA exceeds {standard} §{clause} limit. Increase general ventilation or install local exhaust ventilation at emission source.",
+    template: "8-hour TWA exceeds {standardCode} limit. Increase general ventilation or install local exhaust ventilation at emission source.",
     category: "containment",
   },
   {
@@ -58,7 +58,7 @@ export const REMEDIATION_TEMPLATES: RemediationTemplate[] = [
   },
   {
     metric: "faceVelocity",
-    template: "Adjust sash height or exhaust fan speed to bring face velocity within {threshold}–{upperBound} m/s per {standard} §{clause}.",
+    template: "Adjust sash height or exhaust fan speed to bring face velocity within range per {standardCode}.",
     category: "containment",
   },
   {
@@ -73,7 +73,7 @@ export const REMEDIATION_TEMPLATES: RemediationTemplate[] = [
   },
   {
     metric: "rackInletTemp",
-    template: "Adjust CRAC/CRAH supply temperature or improve airflow containment to bring inlet temp within {threshold}–{upperBound} °C.",
+    template: "Adjust CRAC/CRAH supply temperature or improve airflow containment to bring inlet temp within range per {standardCode}.",
     category: "thermal",
   },
 ];
@@ -86,22 +86,16 @@ export function resolveRemediation(
   params: {
     gap: number;
     pct: string;
-    standard: string;
-    clause: string;
+    standardCode: string;
     threshold: number;
-    upperBound?: number;
-    unit: string;
   }
 ): string {
   const tmpl = REMEDIATION_TEMPLATES.find((t) => t.metric === metric);
-  if (!tmpl) return `Adjust ${metric} to meet ${params.standard} §${params.clause} (gap: ${params.gap.toFixed(2)} ${params.unit}).`;
+  if (!tmpl) return `Adjust ${metric} to meet ${params.standardCode} (gap: ${params.gap.toFixed(2)}).`;
 
   return tmpl.template
     .replace(/\{gap\}/g, params.gap.toFixed(2))
     .replace(/\{pct\}/g, params.pct)
-    .replace(/\{standard\}/g, params.standard)
-    .replace(/\{clause\}/g, params.clause)
-    .replace(/\{threshold\}/g, String(params.threshold))
-    .replace(/\{upperBound\}/g, String(params.upperBound ?? ""))
-    .replace(/\{unit\}/g, params.unit);
+    .replace(/\{standardCode\}/g, params.standardCode)
+    .replace(/\{threshold\}/g, String(params.threshold));
 }

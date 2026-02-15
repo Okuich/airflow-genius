@@ -1147,6 +1147,8 @@ export interface EventTransport {
 
 // ── Compliance Pipeline ─────────────────────────────────────────────────────
 
+export type ComplianceAuthority = "ASHRAE" | "ISO" | "OSHA" | "EPA";
+
 export type ComplianceStandard =
   | "ASHRAE_62.1"
   | "ASHRAE_55"
@@ -1159,20 +1161,17 @@ export type ComplianceStandard =
   | "TIA_942"
   | "NEBS_GR_3028";
 
-export type ComplianceSeverity = "pass" | "advisory" | "warning" | "violation";
+export type ComplianceSeverity = "pass" | "Low" | "Medium" | "High" | "Critical";
 
 export interface ComplianceRule {
   id: string;
-  standard: ComplianceStandard;
-  clause: string;
-  description: string;
+  authority: ComplianceAuthority;
+  standardCode: string;
   metric: string;
   threshold: number;
-  operator: "lt" | "lte" | "gt" | "gte" | "eq" | "between";
-  upperBound?: number;
-  unit: string;
-  severity: ComplianceSeverity;
-  domain: AirflowComplianceDomain;
+  operator: ">" | "<" | ">=" | "<=";
+  severity: "Low" | "Medium" | "High" | "Critical";
+  description: string;
 }
 
 export type AirflowComplianceDomain =
@@ -1218,8 +1217,8 @@ export interface ComplianceRiskReport {
 
 export interface AuditFinding {
   id: string;
-  standard: ComplianceStandard;
-  clause: string;
+  authority: ComplianceAuthority;
+  standardCode: string;
   description: string;
   severity: ComplianceSeverity;
   actualValue: string;
