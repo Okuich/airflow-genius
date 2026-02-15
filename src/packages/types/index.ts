@@ -602,11 +602,28 @@ export interface RefinementStudyCompletedEvent {
   timestamp: string;
 }
 
+export interface SimulationEarlyTerminationEvent {
+  simulationId: string;
+  organizationId: string;
+  reason: string;
+  analysis: {
+    trend: string;
+    confidence: number;
+    slope: number;
+    amplitude: number;
+    currentLevel: number;
+    iteration: number;
+  };
+  suggestedFixes: string[];
+  timestamp: string;
+}
+
 /** Map of all platform event names to their payload types. */
 export interface PlatformEventMap {
   "simulation.submitted": SimulationSubmittedEvent;
   "simulation.completed": SimulationCompletedEvent;
   "simulation.failed": SimulationFailedEvent;
+  "simulation.early_termination": SimulationEarlyTerminationEvent;
   "diagnostic.generated": DiagnosticGeneratedEvent;
   "model.updated": ModelUpdatedEvent;
   "billing.threshold_exceeded": BillingThresholdExceededEvent;

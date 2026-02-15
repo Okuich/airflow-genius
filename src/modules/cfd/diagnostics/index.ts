@@ -13,3 +13,12 @@ export type {
   MeshQualityReport,
   MeshQualityThresholds,
 } from "./mesh-quality-analyzer";
+
+export { ResidualMonitor } from "./residual-monitor";
+export type {
+  ResidualTrend,
+  MonitorConfig,
+  ResidualAnalysis,
+  EarlyTerminationPayload,
+  MonitorListener,
+} from "./residual-monitor";
