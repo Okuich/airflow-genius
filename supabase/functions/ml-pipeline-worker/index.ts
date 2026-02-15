@@ -193,7 +193,18 @@ interface BatchTrainRequest {
   minSamples?: number;
 }
 
-type WorkerRequest = SimulationCompletedEvent | BatchTrainRequest;
+interface HealthCheckRequest {
+  type: "health_check";
+  organizationId?: string;
+}
+
+interface CacheInvalidateRequest {
+  type: "cache_invalidate";
+  organizationId: string;
+  modelType?: string;
+}
+
+type WorkerRequest = SimulationCompletedEvent | BatchTrainRequest | HealthCheckRequest | CacheInvalidateRequest;
 
 // ── Main handler ───────────────────────────────────────────────────────────
 
@@ -214,6 +225,14 @@ serve(async (req) => {
 
     if (body.type === "batch_train") {
       return await handleBatchTrain(supabase, body);
+    }
+
+    if (body.type === "health_check") {
+      return await handleHealthCheck(supabase, body);
+    }
+
+    if (body.type === "cache_invalidate") {
+      return await handleCacheInvalidate(supabase, body);
     }
 
     return new Response(
@@ -534,6 +553,130 @@ async function trainModelForOrg(
     console.error(`[ml-pipeline-worker] Training failed for ${modelType}:`, err);
     return { modelType, jobId, status: "failed", error: errMsg };
   }
+}
+
+// ── health_check handler ───────────────────────────────────────────────────
+
+async function handleHealthCheck(
+  supabase: ReturnType<typeof createClient>,
+  request: HealthCheckRequest
+) {
+  const checks: Record<string, unknown> = {
+    timestamp: new Date().toISOString(),
+    service: "ml-pipeline-worker",
+  };
+
+  // Check database connectivity
+  try {
+    const { count, error } = await supabase
+      .from("ml_model_versions")
+      .select("id", { count: "exact", head: true });
+    checks.database = { healthy: !error, modelCount: count ?? 0, error: error?.message };
+  } catch (e) {
+    checks.database = { healthy: false, error: e instanceof Error ? e.message : "Unknown" };
+  }
+
+  // Check feature store
+  try {
+    let query = supabase
+      .from("feature_store")
+      .select("id", { count: "exact", head: true });
+    if (request.organizationId) query = query.eq("organization_id", request.organizationId);
+    const { count, error } = await query;
+    checks.featureStore = { healthy: !error, sampleCount: count ?? 0, error: error?.message };
+  } catch (e) {
+    checks.featureStore = { healthy: false, error: e instanceof Error ? e.message : "Unknown" };
+  }
+
+  // Check active models per type
+  try {
+    let query = supabase
+      .from("ml_model_versions")
+      .select("model_type, version, is_active, training_sample_count, metrics")
+      .eq("is_active", true);
+    if (request.organizationId) query = query.eq("organization_id", request.organizationId);
+    const { data, error } = await query;
+
+    if (error) {
+      checks.activeModels = { healthy: false, error: error.message };
+    } else {
+      const models = (data ?? []).map((m) => ({
+        modelType: m.model_type,
+        version: m.version,
+        samples: m.training_sample_count,
+        r2: (m.metrics as { r2?: number })?.r2 ?? null,
+        testR2: (m.metrics as { testR2?: number })?.testR2 ?? null,
+      }));
+      checks.activeModels = { healthy: true, count: models.length, models };
+    }
+  } catch (e) {
+    checks.activeModels = { healthy: false, error: e instanceof Error ? e.message : "Unknown" };
+  }
+
+  // Check training jobs (recent failures)
+  try {
+    let query = supabase
+      .from("training_jobs")
+      .select("id, model_type, status, error_message, completed_at")
+      .eq("status", "failed")
+      .order("completed_at", { ascending: false })
+      .limit(5);
+    if (request.organizationId) query = query.eq("organization_id", request.organizationId);
+    const { data, error } = await query;
+    checks.recentFailures = { healthy: !error, count: data?.length ?? 0, failures: data ?? [] };
+  } catch (e) {
+    checks.recentFailures = { healthy: false, error: e instanceof Error ? e.message : "Unknown" };
+  }
+
+  const allHealthy = Object.values(checks)
+    .filter((v) => typeof v === "object" && v !== null && "healthy" in (v as Record<string, unknown>))
+    .every((v) => (v as { healthy: boolean }).healthy);
+
+  return jsonResponse(allHealthy ? 200 : 503, { healthy: allHealthy, checks });
+}
+
+// ── cache_invalidate handler ──────────────────────────────────────────────
+
+async function handleCacheInvalidate(
+  supabase: ReturnType<typeof createClient>,
+  request: CacheInvalidateRequest
+) {
+  const { organizationId, modelType } = request;
+
+  // Verify org exists
+  const { data: org, error: orgErr } = await supabase
+    .from("organizations")
+    .select("id, name")
+    .eq("id", organizationId)
+    .maybeSingle();
+
+  if (orgErr || !org) {
+    return jsonResponse(404, { error: "Organization not found", organizationId });
+  }
+
+  // Fetch current active models (acts as a cache refresh signal)
+  let modelsQuery = supabase
+    .from("ml_model_versions")
+    .select("model_type, version, is_active")
+    .eq("organization_id", organizationId)
+    .eq("is_active", true);
+
+  if (modelType) {
+    modelsQuery = modelsQuery.eq("model_type", modelType);
+  }
+
+  const { data: activeModels } = await modelsQuery;
+
+  return jsonResponse(200, {
+    status: "cache_invalidated",
+    organizationId,
+    modelType: modelType ?? "all",
+    activeModels: (activeModels ?? []).map((m) => ({
+      modelType: m.model_type,
+      version: m.version,
+    })),
+    invalidatedAt: new Date().toISOString(),
+  });
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────

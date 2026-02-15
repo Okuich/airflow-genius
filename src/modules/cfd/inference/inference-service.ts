@@ -47,6 +47,23 @@ export interface TurbulenceRecommendation {
   source: "model" | "fallback";
 }
 
+// ── Health Check Types ───────────────────────────────────────────────────
+
+export interface RegistryHealthStatus {
+  healthy: boolean;
+  registryReachable: boolean;
+  lastCheckAt: string;
+  cachedModelCount: number;
+  fallbackActive: boolean;
+  error?: string;
+}
+
+export interface CacheStats {
+  entries: number;
+  modelTypes: string[];
+  orgIds: string[];
+}
+
 // ── Cached model bundle ───────────────────────────────────────────────────
 
 interface LoadedModel {
@@ -213,14 +230,61 @@ export class InferenceService {
 
   // ── Invalidate cache (e.g. after retraining) ───────────────────────────
 
-  invalidateCache(orgId?: string): void {
-    if (orgId) {
+  invalidateCache(orgId?: string, modelType?: SurrogateModelType): void {
+    if (orgId && modelType) {
+      this.cache.delete(`${orgId}:${modelType}`);
+    } else if (orgId) {
       for (const key of this.cache.keys()) {
         if (key.startsWith(`${orgId}:`)) this.cache.delete(key);
       }
     } else {
       this.cache.clear();
     }
+  }
+
+  // ── Health Check ───────────────────────────────────────────────────────
+
+  async healthCheck(orgId: string): Promise<RegistryHealthStatus> {
+    const now = new Date().toISOString();
+    const cachedModelCount = this.cache.size;
+
+    try {
+      // Probe the registry with a lightweight read
+      const result = await this.registry.getActiveModel(orgId, "convergence");
+      return {
+        healthy: true,
+        registryReachable: true,
+        lastCheckAt: now,
+        cachedModelCount,
+        fallbackActive: result === null,
+      };
+    } catch (err) {
+      return {
+        healthy: false,
+        registryReachable: false,
+        lastCheckAt: now,
+        cachedModelCount,
+        fallbackActive: true,
+        error: err instanceof Error ? err.message : "Registry unreachable",
+      };
+    }
+  }
+
+  // ── Cache Stats ────────────────────────────────────────────────────────
+
+  getCacheStats(): CacheStats {
+    const orgIds = new Set<string>();
+    const modelTypes = new Set<string>();
+    for (const key of this.cache.keys()) {
+      const [org, type] = key.split(":");
+      orgIds.add(org);
+      modelTypes.add(type);
+    }
+    return {
+      entries: this.cache.size,
+      modelTypes: [...modelTypes],
+      orgIds: [...orgIds],
+    };
   }
 
   // ── Internal ────────────────────────────────────────────────────────────
