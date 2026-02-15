@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+import { CoolingDiagnosticsWizard } from "@/components/datacenter/CoolingDiagnosticsWizard";
 import {
   CoolingEfficiencyPredictor,
   CoolingTopologyOptimizer,
@@ -418,6 +419,7 @@ const DataCenterHeatMap = () => {
                 onSelect={setSelectedRack}
               />
               <PUEBreakdownBar breakdown={pueEstimate.breakdown} pue={pueEstimate.estimatedPUE} />
+              <CoolingDiagnosticsWizard report={report} config={DEMO_CONFIG} />
             </div>
 
             <div className="space-y-4">
