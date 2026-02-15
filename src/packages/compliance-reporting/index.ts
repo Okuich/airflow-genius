@@ -5,6 +5,7 @@
 export { ReportFormatter } from "./report-formatter";
 export { ReportHistoryService } from "./report-history";
 export { ReportScheduler } from "./report-scheduler";
+export { ComplianceReportGenerator } from "./compliance-report-generator";
 export { REPORT_TEMPLATES, getTemplate } from "./report-templates";
 export { renderSection } from "./section-renderer";
 export type {
@@ -21,3 +22,11 @@ export type {
   DeliveryConfig,
   DeliveryResult,
 } from "./types";
+export type {
+  ComplianceReportDocument,
+  ReportGeneratorInput,
+  ReportFindingEntry,
+  ReportRiskSummary,
+  RegulatoryReference,
+  DigitalSignaturePlaceholder,
+} from "./compliance-report-generator";
