@@ -14,11 +14,12 @@ export interface Tier {
   nodes: ServiceNode[];
 }
 
-export type Region = "primary" | "secondary";
+export type Region = "primary" | "secondary" | "govcloud";
 
 export interface RegionConfig {
   id: Region;
   label: string;
   location: string;
   status: "active" | "standby" | "syncing";
+  isolated?: boolean;
 }
