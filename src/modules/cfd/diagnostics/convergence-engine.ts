@@ -1,32 +1,9 @@
-// ─── Input / Output Types ───────────────────────────────────────────────────
+import type { ResidualData, MeshStats, RelaxationFactors } from "@/packages/types";
+import { MESH_QUALITY, CONVERGENCE } from "@/packages/config";
 
-export interface ResidualSample {
-  iteration: number;
-  continuity: number;
-  xMomentum: number;
-  yMomentum: number;
-  zMomentum: number;
-  energy: number | null;
-  kTurbulent: number | null;
-  epsilonOrOmega: number | null;
-}
-
-export interface MeshStats {
-  cellCount: number;
-  avgOrthogonality: number;
-  maxSkewness: number;
-  maxAspectRatio: number;
-  minVolume: number;
-  nonOrthogonalCellPercent: number;
-  avgYPlus: number | null;
-}
-
-export interface RelaxationFactors {
-  pressure: number;
-  velocity: number;
-  turbulence: number;
-  energy: number | null;
-}
+// Re-export for backward compat
+export type ResidualSample = ResidualData;
+export type { MeshStats, RelaxationFactors };
 
 export interface TurbulenceModelInput {
   type: "k-epsilon" | "k-epsilon-rng" | "k-omega-sst" | "spalart-allmaras";
@@ -87,14 +64,14 @@ function tailMean(values: number[], n: number): number {
 
 // ─── Thresholds ─────────────────────────────────────────────────────────────
 
-const DIVERGENCE_SLOPE_THRESHOLD = 0.01;      // positive slope → growing
-const STAGNATION_SLOPE_MAGNITUDE = 0.002;      // near-zero slope
-const OSCILLATION_AMPLITUDE_THRESHOLD = 0.5;   // >0.5 decades swing
-const HIGH_SKEWNESS_THRESHOLD = 0.85;
-const LOW_ORTHOGONALITY_THRESHOLD = 0.5;
-const HIGH_ASPECT_RATIO_THRESHOLD = 100;
-const TREND_WINDOW_FRACTION = 0.25;            // use last 25 % of history
-const MIN_TREND_WINDOW = 20;
+const DIVERGENCE_SLOPE_THRESHOLD = CONVERGENCE.divergenceSlopeThreshold;
+const STAGNATION_SLOPE_MAGNITUDE = CONVERGENCE.stagnationSlopeMagnitude;
+const OSCILLATION_AMPLITUDE_THRESHOLD = CONVERGENCE.oscillationAmplitudeThreshold;
+const HIGH_SKEWNESS_THRESHOLD = MESH_QUALITY.highSkewness;
+const LOW_ORTHOGONALITY_THRESHOLD = MESH_QUALITY.lowOrthogonality;
+const HIGH_ASPECT_RATIO_THRESHOLD = MESH_QUALITY.highAspectRatio;
+const TREND_WINDOW_FRACTION = CONVERGENCE.trendWindowFraction;
+const MIN_TREND_WINDOW = CONVERGENCE.minTrendWindow;
 
 // ─── Engine ─────────────────────────────────────────────────────────────────
 
