@@ -1,14 +1,18 @@
-import { Wind, BarChart3, Settings2, FolderOpen, Cpu, HelpCircle, LogOut } from "lucide-react";
+import { Wind, BarChart3, Settings2, FolderOpen, Cpu, HelpCircle, LogOut, Eye } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 const NAV_ITEMS = [
-  { icon: BarChart3, label: "Dashboard", active: true },
-  { icon: Wind, label: "Simulations" },
-  { icon: FolderOpen, label: "Projects" },
-  { icon: Cpu, label: "Solver Queue" },
-  { icon: Settings2, label: "Settings" },
+  { icon: BarChart3, label: "Dashboard", href: "/" },
+  { icon: Wind, label: "Simulations", href: "/" },
+  { icon: FolderOpen, label: "Projects", href: "/" },
+  { icon: Eye, label: "3D Viewer", href: "/viewer" },
+  { icon: Cpu, label: "Solver Queue", href: "/" },
+  { icon: Settings2, label: "Settings", href: "/" },
 ];
 
 export function AppSidebar() {
+  const location = useLocation();
+
   return (
     <aside className="w-64 h-screen flex flex-col surface-panel border-r border-surface-border shrink-0">
       {/* Logo */}
@@ -26,19 +30,23 @@ export function AppSidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {NAV_ITEMS.map((item) => (
-          <button
-            key={item.label}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-              item.active
-                ? "bg-surface-overlay text-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-surface-overlay/50"
-            }`}
-          >
-            <item.icon className={`w-4 h-4 ${item.active ? "text-data-cyan" : ""}`} />
-            {item.label}
-          </button>
-        ))}
+        {NAV_ITEMS.map((item) => {
+          const isActive = location.pathname === item.href;
+          return (
+            <Link
+              key={item.label}
+              to={item.href}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                isActive
+                  ? "bg-surface-overlay text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-surface-overlay/50"
+              }`}
+            >
+              <item.icon className={`w-4 h-4 ${isActive ? "text-data-cyan" : ""}`} />
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
 
       {/* Footer */}
