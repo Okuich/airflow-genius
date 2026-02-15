@@ -15,6 +15,7 @@ export type GeometryCluster =
   | "cleanroom"
   | "exhaust-system"
   | "agriculture-ventilation"
+  | "data-center"
   | "generic";
 
 // ── Feature Store Entries ───────────────────────────────────────────────────

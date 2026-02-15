@@ -86,6 +86,12 @@ const KNOWLEDGE_BASE: KnowledgePattern[] = [
     diagnosticChecks: [DiagnosticCheck.CaptureVelocity, DiagnosticCheck.BackflowRisk, DiagnosticCheck.SpeciesConcentration, DiagnosticCheck.NegativePressure],
     commonActions: [ActionType.AdjustExhaustFlow, ActionType.OptimizeHoodDesign, ActionType.AddBackdraftDamper, ActionType.ProvideExplanation],
   },
+  {
+    intent: IntentCategory.DataCenterDiagnostic,
+    keywords: ["data center", "datacenter", "rack", "hotspot", "containment", "pue", "cooling", "crac", "crah", "cold aisle", "hot aisle", "blanking panel", "raised floor", "tile", "bypass air", "recirculation", "server room"],
+    diagnosticChecks: [DiagnosticCheck.RackHotspot, DiagnosticCheck.ContainmentLeak, DiagnosticCheck.PUEDeviation, DiagnosticCheck.CoolingCapacity],
+    commonActions: [ActionType.OptimizeContainment, ActionType.AdjustCoolingCapacity, ActionType.RebalanceAirflow, ActionType.ProvideExplanation],
+  },
 ];
 
 // ─── Agent Implementation ───────────────────────────────────────────────────
@@ -446,6 +452,10 @@ export class CFDAIAgent {
       [DiagnosticCheck.BackflowRisk]: () => ({ check, passed: false, value: 0.65, threshold: "< 0.2", severity: Severity.High, detail: "Backflow risk score 0.65 — reverse flow detected at exhaust openings, consider backdraft dampers" }),
       [DiagnosticCheck.SpeciesConcentration]: () => ({ check, passed: false, value: "above TLV", threshold: "Below occupational exposure limit", severity: Severity.Critical, detail: "One or more species exceed the occupational exposure limit at worker breathing zone" }),
       [DiagnosticCheck.NegativePressure]: () => ({ check, passed: true, value: -30, threshold: "< -25 Pa", severity: Severity.Low, detail: "Enclosure negative pressure -30 Pa — adequate containment" }),
+      [DiagnosticCheck.RackHotspot]: () => ({ check, passed: false, value: 4, threshold: "0", severity: Severity.High, detail: "4 rack hotspots detected — exhaust temperatures exceed threshold by >5 °C" }),
+      [DiagnosticCheck.ContainmentLeak]: () => ({ check, passed: false, value: 0.72, threshold: "> 0.85", severity: Severity.Medium, detail: "Containment score 0.72 — bypass air detected from missing blanking panels and unsealed cable cutouts" }),
+      [DiagnosticCheck.PUEDeviation]: () => ({ check, passed: false, value: 1.65, threshold: "< 1.4", severity: Severity.Medium, detail: "Estimated PUE 1.65 exceeds target 1.4 — cooling overhead is dominant contributor" }),
+      [DiagnosticCheck.CoolingCapacity]: () => ({ check, passed: true, value: 1.25, threshold: "> 1.2× IT load", severity: Severity.Low, detail: "Cooling capacity 1.25× IT load — adequate headroom" }),
     };
 
     return checkTemplates[check]();
@@ -542,6 +552,9 @@ export class CFDAIAgent {
       [ActionType.AdjustExhaustFlow]: "Increase exhaust fan capacity or adjust duct sizing to improve capture velocity and containment",
       [ActionType.OptimizeHoodDesign]: "Modify hood geometry — reduce source-to-hood distance, add flanges, or switch to canopy hood for buoyant sources",
       [ActionType.AddBackdraftDamper]: "Install backdraft dampers on exhaust openings to prevent reverse flow during transient pressure fluctuations",
+      [ActionType.OptimizeContainment]: "Improve hot/cold aisle containment — install blanking panels, seal cable cutouts, and add end-of-row doors",
+      [ActionType.AdjustCoolingCapacity]: "Adjust CRAC/CRAH setpoints or add supplemental cooling to eliminate rack hotspots",
+      [ActionType.RebalanceAirflow]: "Rebalance raised-floor tile placement and plenum airflow to match rack-level demand",
     };
     return descriptions[type];
   }
@@ -568,6 +581,9 @@ export class CFDAIAgent {
       [ActionType.AdjustExhaustFlow]: { increaseFlowRatePercent: 20, checkDuctLosses: true },
       [ActionType.OptimizeHoodDesign]: { addFlanges: true, reduceStandoff: true },
       [ActionType.AddBackdraftDamper]: { damperType: "gravity", locations: "all_exhaust_openings" },
+      [ActionType.OptimizeContainment]: { installBlankingPanels: true, sealCutouts: true, addDoors: true },
+      [ActionType.AdjustCoolingCapacity]: { raiseSupplyTemp: false, addUnits: false },
+      [ActionType.RebalanceAirflow]: { reviewTilePlacement: true, plenumObstructionCheck: true },
     };
     return paramMap[type] ?? {};
   }
@@ -590,6 +606,9 @@ export class CFDAIAgent {
       [ActionType.AdjustExhaustFlow]: "Increases capture velocity and reduces backflow risk at exhaust openings",
       [ActionType.OptimizeHoodDesign]: "Maximizes contaminant capture at the source before dilution into the workspace",
       [ActionType.AddBackdraftDamper]: "Physically prevents reverse flow during fan-off or transient pressure events",
+      [ActionType.OptimizeContainment]: "Reduces bypass air by 20-30%, lowering CRAC load and improving rack inlet temperatures",
+      [ActionType.AdjustCoolingCapacity]: "Eliminates thermal hotspots by matching cooling supply to IT heat load",
+      [ActionType.RebalanceAirflow]: "Ensures each rack receives adequate airflow, reducing both hotspots and overcooling",
     };
     return impacts[type];
   }
