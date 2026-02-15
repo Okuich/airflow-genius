@@ -11,9 +11,10 @@ import type {
 
 const SEVERITY_WEIGHT: Record<ComplianceSeverity, number> = {
   pass: 0,
-  advisory: 1,
-  warning: 3,
-  violation: 5,
+  Low: 1,
+  Medium: 3,
+  High: 4,
+  Critical: 5,
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -39,13 +40,13 @@ export class RiskScoringEngine {
         (sum, c) => sum + (c.passed ? 0 : SEVERITY_WEIGHT[c.severity]),
         0
       );
-      const maxScore = checks.length * SEVERITY_WEIGHT.violation;
+      const maxScore = checks.length * SEVERITY_WEIGHT.Critical;
       totalScore += score;
       totalMax += maxScore;
 
       const factors = checks
         .filter((c) => !c.passed)
-        .map((c) => `${c.rule.standard} §${c.rule.clause}: ${c.detail}`);
+        .map((c) => `${c.rule.authority} ${c.rule.standardCode}: ${c.detail}`);
 
       categoryScores.push({
         category: CATEGORY_LABELS[category] ?? category,
@@ -60,7 +61,7 @@ export class RiskScoringEngine {
       .filter((r) => !r.passed)
       .sort((a, b) => SEVERITY_WEIGHT[b.severity] - SEVERITY_WEIGHT[a.severity])
       .slice(0, 5)
-      .map((r) => `[${r.severity.toUpperCase()}] ${r.rule.description} (${r.rule.standard} §${r.rule.clause})`);
+      .map((r) => `[${r.severity.toUpperCase()}] ${r.rule.description} (${r.rule.authority} ${r.rule.standardCode})`);
 
     return {
       overallRiskScore: totalScore,
@@ -106,9 +107,10 @@ export class RiskScoringEngine {
     if (maxScore === 0) return "pass";
     const ratio = score / maxScore;
     if (ratio === 0) return "pass";
-    if (ratio < 0.2) return "advisory";
-    if (ratio < 0.5) return "warning";
-    return "violation";
+    if (ratio < 0.2) return "Low";
+    if (ratio < 0.5) return "Medium";
+    if (ratio < 0.7) return "High";
+    return "Critical";
   }
 
   private classifyRiskLevel(score: number, max: number): ComplianceRiskReport["riskLevel"] {

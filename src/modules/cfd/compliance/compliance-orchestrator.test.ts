@@ -38,8 +38,8 @@ describe("ComplianceOrchestrator", () => {
       },
     });
 
-    const violations = result.checkResults.filter((c) => c.severity === "violation");
-    expect(violations.length).toBeGreaterThan(0);
+    const failures = result.checkResults.filter((c) => !c.passed);
+    expect(failures.length).toBeGreaterThan(0);
     expect(result.auditDocument.overallVerdict).toBe("non_compliant");
     expect(result.auditDocument.findings.length).toBeGreaterThan(0);
     expect(result.riskReport.topRisks.length).toBeGreaterThan(0);
@@ -60,7 +60,7 @@ describe("ComplianceOrchestrator", () => {
     expect(result.auditDocument.overallVerdict).not.toBe("compliant");
   });
 
-  it("produces conditionally compliant for only advisory/warning findings", () => {
+  it("produces conditionally compliant for only low-severity findings", () => {
     const result = orchestrator.run({
       simulationId: "sim-004",
       organizationId: "org-001",
@@ -69,14 +69,14 @@ describe("ComplianceOrchestrator", () => {
         outdoorAirRate: 5.0,
         exhaustAirflow: 1.0,
         operativeTemperature: 23.0,
-        maxAirSpeed: 1.0, // exceeds 0.8 advisory
+        maxAirSpeed: 1.0, // exceeds 0.8 — Low severity
       },
     });
 
     expect(result.auditDocument.overallVerdict).toBe("conditionally_compliant");
   });
 
-  it("includes remediation in findings for violations", () => {
+  it("includes remediation in findings for critical issues", () => {
     const result = orchestrator.run({
       simulationId: "sim-005",
       organizationId: "org-001",

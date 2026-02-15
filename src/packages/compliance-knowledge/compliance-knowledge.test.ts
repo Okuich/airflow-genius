@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   STANDARD_CATALOG,
   RULE_LIBRARY,
+  RULE_DOMAIN_MAP,
   METRIC_STANDARD_LINKS,
   REMEDIATION_TEMPLATES,
   getStandardsForMetric,
@@ -22,9 +23,9 @@ describe("compliance-knowledge", () => {
       }
     });
 
-    it("each standard has domains assigned", () => {
+    it("each standard has authority assigned", () => {
       for (const std of STANDARD_CATALOG) {
-        expect(std.domains.length).toBeGreaterThan(0);
+        expect(["ASHRAE", "ISO", "OSHA", "EPA"]).toContain(std.authority);
       }
     });
 
@@ -40,17 +41,29 @@ describe("compliance-knowledge", () => {
     });
 
     it("every rule has a valid operator", () => {
-      const ops = ["lt", "lte", "gt", "gte", "eq", "between"];
+      const ops = [">", "<", ">=", "<="];
       for (const rule of RULE_LIBRARY) {
         expect(ops).toContain(rule.operator);
       }
     });
 
-    it("between rules have upperBound", () => {
-      const betweenRules = RULE_LIBRARY.filter((r) => r.operator === "between");
-      for (const rule of betweenRules) {
-        expect(rule.upperBound).toBeDefined();
-        expect(rule.upperBound).toBeGreaterThan(rule.threshold);
+    it("every rule has a valid severity", () => {
+      const sev = ["Low", "Medium", "High", "Critical"];
+      for (const rule of RULE_LIBRARY) {
+        expect(sev).toContain(rule.severity);
+      }
+    });
+
+    it("every rule has a valid authority", () => {
+      const auth = ["ASHRAE", "ISO", "OSHA", "EPA"];
+      for (const rule of RULE_LIBRARY) {
+        expect(auth).toContain(rule.authority);
+      }
+    });
+
+    it("every rule has a domain mapping", () => {
+      for (const rule of RULE_LIBRARY) {
+        expect(RULE_DOMAIN_MAP[rule.id]).toBeDefined();
       }
     });
   });
@@ -95,10 +108,8 @@ describe("compliance-knowledge", () => {
       const result = resolveRemediation("captureVelocity", {
         gap: 0.3,
         pct: "60",
-        standard: "ACGIH_TLV",
-        clause: "VS-10",
+        standardCode: "OSHA ACGIH VS-10",
         threshold: 0.5,
-        unit: "m/s",
       });
       expect(result).toContain("0.30");
       expect(result).toContain("m/s");
@@ -108,10 +119,8 @@ describe("compliance-knowledge", () => {
       const result = resolveRemediation("unknownMetric", {
         gap: 1,
         pct: "10",
-        standard: "X",
-        clause: "1",
+        standardCode: "X §1",
         threshold: 5,
-        unit: "u",
       });
       expect(result).toContain("unknownMetric");
     });

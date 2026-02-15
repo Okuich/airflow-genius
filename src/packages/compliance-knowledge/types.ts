@@ -5,6 +5,7 @@
 
 import type {
   ComplianceStandard,
+  ComplianceAuthority,
   ComplianceRule,
   AirflowComplianceDomain,
 } from "@/packages/types";
@@ -14,6 +15,8 @@ import type {
 export interface StandardDefinition {
   /** Standard identifier (e.g. "ASHRAE_62.1"). */
   standard: ComplianceStandard;
+  /** Authority category. */
+  authority: ComplianceAuthority;
   /** Full title. */
   title: string;
   /** Short description of scope. */
@@ -59,7 +62,7 @@ export interface MetricStandardLink {
 export interface RemediationTemplate {
   /** Metric this template addresses. */
   metric: string;
-  /** Template string — use `{gap}`, `{pct}`, `{standard}`, `{clause}` placeholders. */
+  /** Template string — use `{gap}`, `{pct}`, `{standardCode}`, `{threshold}` placeholders. */
   template: string;
   /** Engineering category. */
   category: "ventilation" | "thermal" | "containment" | "energy" | "equipment";
