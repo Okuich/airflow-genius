@@ -1,4 +1,5 @@
-import { forwardRef } from "react";
+import { useEffect } from "react";
+import { toast } from "sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -33,35 +34,49 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-const AppRoutes = forwardRef<HTMLDivElement>((_props, _ref) => (
-  <Routes>
-    <Route path="/auth" element={<Auth />} />
-    <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-    <Route path="/builder" element={<ProtectedRoute><Builder /></ProtectedRoute>} />
-    <Route path="/viewer" element={<ProtectedRoute><Viewer /></ProtectedRoute>} />
-    <Route path="/compliance" element={<ProtectedRoute><Compliance /></ProtectedRoute>} />
-    <Route path="/ml-pipeline" element={<ProtectedRoute><MLPipeline /></ProtectedRoute>} />
-    <Route path="/explainability" element={<ProtectedRoute><ModelExplainability /></ProtectedRoute>} />
-    <Route path="/solver-status" element={<ProtectedRoute><SolverStatus /></ProtectedRoute>} />
-    <Route path="/cleanroom" element={<ProtectedRoute><CleanroomMetrics /></ProtectedRoute>} />
-    <Route path="/datacenter" element={<ProtectedRoute><DataCenterHeatMap /></ProtectedRoute>} />
-    <Route path="/architecture" element={<ProtectedRoute><Architecture /></ProtectedRoute>} />
-    <Route path="*" element={<NotFound />} />
-  </Routes>
-));
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+      <Route path="/builder" element={<ProtectedRoute><Builder /></ProtectedRoute>} />
+      <Route path="/viewer" element={<ProtectedRoute><Viewer /></ProtectedRoute>} />
+      <Route path="/compliance" element={<ProtectedRoute><Compliance /></ProtectedRoute>} />
+      <Route path="/ml-pipeline" element={<ProtectedRoute><MLPipeline /></ProtectedRoute>} />
+      <Route path="/explainability" element={<ProtectedRoute><ModelExplainability /></ProtectedRoute>} />
+      <Route path="/solver-status" element={<ProtectedRoute><SolverStatus /></ProtectedRoute>} />
+      <Route path="/cleanroom" element={<ProtectedRoute><CleanroomMetrics /></ProtectedRoute>} />
+      <Route path="/datacenter" element={<ProtectedRoute><DataCenterHeatMap /></ProtectedRoute>} />
+      <Route path="/architecture" element={<ProtectedRoute><Architecture /></ProtectedRoute>} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  useEffect(() => {
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      console.error("Unhandled rejection:", event.reason);
+      toast.error("An unexpected error occurred. Please try again.");
+      event.preventDefault();
+    };
+    window.addEventListener("unhandledrejection", handleRejection);
+    return () => window.removeEventListener("unhandledrejection", handleRejection);
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

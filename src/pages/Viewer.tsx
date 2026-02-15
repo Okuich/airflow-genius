@@ -1,11 +1,13 @@
 import { CFDViewer } from "@/components/cfd/viewer";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+import { SEOHead } from "@/components/SEOHead";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const ViewerPage = () => {
   return (
     <div className="flex h-screen overflow-hidden dark">
+      <SEOHead title="3D Viewer — FlowForge CFD" description="Visualize CFD results with interactive 3D contour maps, velocity vectors, and slice planes." />
       <AppSidebar />
 
       <main className="flex-1 flex flex-col overflow-hidden bg-background">

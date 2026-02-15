@@ -1,11 +1,13 @@
 import { SimulationForm } from "@/components/builder/SimulationForm";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+import { SEOHead } from "@/components/SEOHead";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const BuilderPage = () => {
   return (
     <div className="flex h-screen overflow-hidden dark">
+      <SEOHead title="Simulation Builder — FlowForge CFD" description="Configure mesh, solver, and boundary conditions for your CFD simulation." />
       <AppSidebar />
 
       <main className="flex-1 overflow-y-auto bg-background grid-engineering">

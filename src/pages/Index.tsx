@@ -5,6 +5,7 @@ import { MetricCard } from "@/components/cfd/MetricCard";
 import { ResidualChart } from "@/components/cfd/ResidualChart";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { AiAssistantPanel } from "@/components/cfd/AiAssistantPanel";
+import { SEOHead } from "@/components/SEOHead";
 import type { SimulationContext } from "@/components/cfd/ai-chat-types";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -30,6 +31,7 @@ const Index = () => {
 
   return (
     <div className="flex h-screen overflow-hidden dark">
+      <SEOHead title="Dashboard — FlowForge CFD" description="Monitor CFD simulations, view residuals, and manage your HVAC & turbomachinery projects." />
       <AppSidebar />
 
       <main className="flex-1 overflow-y-auto bg-background grid-engineering">

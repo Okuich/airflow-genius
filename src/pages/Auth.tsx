@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/modules/tenant/auth-context";
 import { useNavigate, Link } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 import { Wind, Mail, Lock, User, ArrowRight, AlertCircle } from "lucide-react";
 
 const Auth = () => {
@@ -50,6 +51,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background dark grid-engineering">
+      <SEOHead title="Sign In — FlowForge CFD" description="Sign in or create an account to access FlowForge CFD simulations and analytics." />
       <div className="surface-panel rounded-lg p-8 max-w-md w-full mx-4">
         <div className="flex items-center gap-2 mb-6">
           <Wind className="w-6 h-6 text-data-cyan" />
