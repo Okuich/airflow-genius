@@ -96,3 +96,39 @@ export interface SimulationConfig {
   referenceTemperature?: number;
   referencePressure: number;
 }
+
+// ─── Rotating Machinery ─────────────────────────────────────────────────────
+
+export interface BladeTipRefinement {
+  tipClearance: number;
+  refinementRadius: number;
+  refinementLevels: number;
+  minCellSize: number;
+}
+
+export interface FanSimulationConfig extends SimulationConfig {
+  rpm: number;
+  bladeCount: number;
+  rotatingZoneRadius: number;
+  bladeTipRefinement: BladeTipRefinement;
+  boundaryLayerAutoDetect: boolean;
+}
+
+export interface RotatingMeshAdjustments {
+  adjustedBaseSize: number;
+  adjustedMinSize: number;
+  bladeTipRefinementZone: {
+    innerRadius: number;
+    outerRadius: number;
+    axialExtent: number;
+    cellSize: number;
+    refinementLevels: number;
+  };
+  interfaceRefinement: {
+    cellSize: number;
+    transitionLayers: number;
+  };
+  recommendedBoundaryLayers: number;
+  recommendedGrowthRate: number;
+  estimatedCellCount: number;
+}
