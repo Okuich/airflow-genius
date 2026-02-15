@@ -1,0 +1,135 @@
+// ─── Standard Catalog ──────────────────────────────────────────────────────
+// Complete catalog of regulatory standards referenced in CFD compliance.
+// ──────────────────────────────────────────────────────────────────────────
+
+import type { StandardDefinition } from "./types";
+
+export const STANDARD_CATALOG: StandardDefinition[] = [
+  {
+    standard: "ASHRAE_62.1",
+    title: "ASHRAE Standard 62.1 — Ventilation for Acceptable Indoor Air Quality",
+    description: "Ventilation for acceptable indoor air quality",
+    issuingBody: "ASHRAE",
+    editionYear: 2022,
+    domains: ["hvac"],
+    keywords: ["ventilation", "outdoor air", "breathing zone", "ach", "indoor air quality"],
+    clauses: [
+      { clauseId: "6.2", title: "Breathing Zone Outdoor Airflow", requirement: "Minimum outdoor air rate ≥ 2.5 L/s/person for office spaces", metrics: ["outdoorAirRate"] },
+      { clauseId: "6.4", title: "Exhaust Airflow", requirement: "Minimum exhaust rate for occupied spaces", metrics: ["exhaustAirflow"] },
+    ],
+  },
+  {
+    standard: "ASHRAE_55",
+    title: "ASHRAE Standard 55 — Thermal Environmental Conditions for Human Occupancy",
+    description: "Thermal environmental conditions for human occupancy",
+    issuingBody: "ASHRAE",
+    editionYear: 2023,
+    domains: ["hvac"],
+    keywords: ["thermal comfort", "operative temperature", "air speed", "draft", "pmv", "ppd"],
+    clauses: [
+      { clauseId: "5.3.1", title: "Operative Temperature Limits", requirement: "Operative temperature 19.5–27.5 °C in cooling season", metrics: ["operativeTemperature"] },
+      { clauseId: "5.3.3", title: "Elevated Air Speed", requirement: "Air speed ≤ 0.8 m/s for thermal comfort", metrics: ["maxAirSpeed"] },
+    ],
+  },
+  {
+    standard: "ASHRAE_90.4",
+    title: "ASHRAE Standard 90.4 — Energy Standard for Data Centers",
+    description: "Energy standard for data centers",
+    issuingBody: "ASHRAE",
+    editionYear: 2019,
+    domains: ["data-center"],
+    keywords: ["pue", "energy", "data center", "efficiency", "mechanical cooling"],
+    clauses: [
+      { clauseId: "6.3", title: "Mechanical PUE Limit", requirement: "Maximum mechanical PUE ≤ 1.4", metrics: ["estimatedPUE"] },
+    ],
+  },
+  {
+    standard: "ISO_14644",
+    title: "ISO 14644 — Cleanrooms and Associated Controlled Environments",
+    description: "Cleanrooms and associated controlled environments",
+    issuingBody: "ISO",
+    editionYear: 2015,
+    domains: ["cleanroom"],
+    keywords: ["cleanroom", "iso class", "particle", "laminar", "hepa", "recovery", "unidirectional"],
+    clauses: [
+      { clauseId: "4.3", title: "Air Change Rate", requirement: "Air change rate ≥ 240 ACH for ISO 5", metrics: ["airChangeRate"] },
+      { clauseId: "4.4", title: "Recovery Time", requirement: "Recovery time ≤ 1200 s for 99% particle removal", metrics: ["recoveryTime"] },
+      { clauseId: "B.4", title: "Unidirectional Flow Coverage", requirement: "Laminar coverage ≥ 80% of cross-section", metrics: ["laminarCoverage"] },
+    ],
+  },
+  {
+    standard: "OSHA_PEL",
+    title: "OSHA Permissible Exposure Limits (29 CFR 1910.1000)",
+    description: "Permissible exposure limits for airborne substances",
+    issuingBody: "OSHA",
+    editionYear: 2021,
+    domains: ["exhaust", "agriculture"],
+    keywords: ["exposure", "pel", "contaminant", "ammonia", "concentration", "twa", "occupational"],
+    clauses: [
+      { clauseId: "1910.1000", title: "Air Contaminant PELs", requirement: "Airborne contaminant concentration ≤ PEL", metrics: ["peakConcentration"] },
+      { clauseId: "Z-1 Table", title: "8-Hour TWA Limits", requirement: "8-hour TWA ≤ limit for each substance", metrics: ["twaConcentration", "ammoniaConcentration"] },
+    ],
+  },
+  {
+    standard: "NFPA_45",
+    title: "NFPA 45 — Fire Protection for Laboratories Using Chemicals",
+    description: "Fire protection for laboratories using chemicals",
+    issuingBody: "NFPA",
+    editionYear: 2019,
+    domains: ["exhaust"],
+    keywords: ["fume hood", "laboratory", "face velocity", "chemical", "fire protection"],
+    clauses: [
+      { clauseId: "7.8", title: "Fume Hood Face Velocity", requirement: "Face velocity 0.4–0.6 m/s", metrics: ["faceVelocity"] },
+    ],
+  },
+  {
+    standard: "EN_16798",
+    title: "EN 16798 — Energy Performance of Buildings — Ventilation",
+    description: "European indoor environmental input parameters",
+    issuingBody: "CEN",
+    editionYear: 2019,
+    domains: ["hvac"],
+    keywords: ["indoor environmental", "european", "ventilation", "thermal", "iaq category"],
+    clauses: [
+      { clauseId: "6.3", title: "Ventilation Rates", requirement: "Minimum ventilation rates for IAQ categories", metrics: ["outdoorAirRate"] },
+      { clauseId: "6.4", title: "Thermal Comfort", requirement: "Thermal comfort within category bounds", metrics: ["operativeTemperature"] },
+    ],
+  },
+  {
+    standard: "ACGIH_TLV",
+    title: "ACGIH Threshold Limit Values for Chemical Substances",
+    description: "Threshold limit values for chemical substances",
+    issuingBody: "ACGIH",
+    editionYear: 2023,
+    domains: ["exhaust", "agriculture"],
+    keywords: ["tlv", "threshold limit", "capture velocity", "hood", "ammonia", "industrial ventilation"],
+    clauses: [
+      { clauseId: "VS-10", title: "Hood Capture Velocity", requirement: "Minimum hood capture velocity ≥ 0.5 m/s", metrics: ["captureVelocity"] },
+      { clauseId: "TLV-TWA", title: "TWA Exposure Limit", requirement: "Time-weighted average ≤ TLV-TWA", metrics: ["ammoniaConcentration", "twaConcentration"] },
+    ],
+  },
+  {
+    standard: "TIA_942",
+    title: "TIA-942 — Telecommunications Infrastructure Standard for Data Centers",
+    description: "Telecommunications infrastructure standard for data centers",
+    issuingBody: "TIA",
+    editionYear: 2017,
+    domains: ["data-center"],
+    keywords: ["data center", "tier", "inlet temperature", "rack", "cooling", "telecommunications"],
+    clauses: [
+      { clauseId: "5.3.4", title: "Allowable Inlet Temperature", requirement: "Rack inlet temperature 18–27 °C", metrics: ["rackInletTemp"] },
+    ],
+  },
+  {
+    standard: "NEBS_GR_3028",
+    title: "NEBS GR-3028 — Thermal Management of Telecom Equipment",
+    description: "Thermal management for telecom equipment",
+    issuingBody: "Telcordia",
+    editionYear: 2001,
+    domains: ["data-center"],
+    keywords: ["nebs", "telco", "thermal", "equipment", "inlet temperature"],
+    clauses: [
+      { clauseId: "3.1", title: "Equipment Inlet Limit", requirement: "Equipment inlet temperature ≤ 40 °C", metrics: ["rackInletTemp"] },
+    ],
+  },
+];
