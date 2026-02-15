@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/modules/tenant";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+import { SEOHead } from "@/components/SEOHead";
+import { GpuUtilizationPanel } from "@/components/solver/GpuUtilizationPanel";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
@@ -265,6 +267,7 @@ const SolverStatus = () => {
   return (
     <div className="flex h-screen overflow-hidden dark">
       <AppSidebar />
+      <SEOHead title="Solver Status — FlowForge CFD" description="Real-time CFD solver monitoring with GPU utilization, job queue, and convergence analytics." />
       <main className="flex-1 overflow-y-auto bg-background grid-engineering">
         {/* Header */}
         <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-xl px-8 py-4 flex items-center justify-between">
@@ -354,6 +357,9 @@ const SolverStatus = () => {
               </div>
             </div>
           )}
+
+          {/* GPU Utilization Panel */}
+          <GpuUtilizationPanel />
 
           {/* Charts Grid */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
