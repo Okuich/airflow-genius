@@ -27,6 +27,7 @@ export enum FlowType {
   ContaminantDecay = "contaminant_decay",
   ExhaustVentilation = "exhaust_ventilation",
   BuoyancyDriven = "buoyancy_driven",
+  AgricultureVentilation = "agriculture_ventilation",
 }
 
 export enum TurbulenceType {
@@ -435,6 +436,135 @@ export interface AgricultureVentilationMetrics {
   humidityStability: number;
   /** Spatial uniformity of airflow distribution (0–1, 1 = uniform). */
   airflowUniformityIndex: number;
+}
+
+// ── Agricultural Ventilation ────────────────────────────────────────────────
+
+export interface MultiZoneAirflowModel {
+  /** Enable multi-zone network airflow model. */
+  enabled: boolean;
+  /** Zone definitions within the agricultural building. */
+  zones: AirflowZone[];
+  /** Inter-zone openings / connections. */
+  connections: ZoneConnection[];
+  /** Wind-driven natural ventilation coefficient. */
+  windPressureCoefficient: number;
+  /** Stack effect enabled (thermal buoyancy between zones). */
+  enableStackEffect: boolean;
+}
+
+export interface AirflowZone {
+  /** Zone identifier. */
+  id: string;
+  /** Descriptive name (e.g. "Barn Section A", "Manure Pit"). */
+  name: string;
+  /** Zone volume in m³. */
+  volume: number;
+  /** Average zone temperature in °C. */
+  temperature: number;
+  /** Average relative humidity (0–1). */
+  relativeHumidity: number;
+  /** Ammonia source emission rate in mg/s. */
+  ammoniaEmissionRate: number;
+  /** Metabolic heat generation from livestock in W. */
+  animalHeatLoad: number;
+  /** Moisture production from livestock in g/s. */
+  moistureProductionRate: number;
+  /** Number of animals in this zone. */
+  animalCount: number;
+}
+
+export interface ZoneConnection {
+  /** Source zone ID. */
+  fromZoneId: string;
+  /** Target zone ID. */
+  toZoneId: string;
+  /** Opening area in m². */
+  openingArea: number;
+  /** Discharge coefficient (0–1). */
+  dischargeCoefficient: number;
+  /** Is this a controllable opening (e.g. adjustable curtain). */
+  controllable: boolean;
+}
+
+export interface MoistureTransportModel {
+  /** Enable moisture (water vapour) transport. */
+  enabled: boolean;
+  /** Ambient outdoor relative humidity (0–1). */
+  ambientHumidity: number;
+  /** Ambient outdoor temperature in °C. */
+  ambientTemperature: number;
+  /** Condensation modelling on cold surfaces. */
+  enableCondensation: boolean;
+  /** Evaporation from wet surfaces (e.g. manure, waterers). */
+  enableEvaporation: boolean;
+  /** Latent heat exchange coupling with energy equation. */
+  latentHeatCoupling: boolean;
+}
+
+export interface AgricultureSimulationConfig extends SimulationConfig {
+  /** Multi-zone airflow network model. */
+  multiZoneModel: MultiZoneAirflowModel;
+  /** Moisture transport configuration. */
+  moistureTransport: MoistureTransportModel;
+  /** Buoyancy configuration for thermal stratification. */
+  buoyancy?: BuoyancyDrivenFlowConfig;
+  /** Target ammonia concentration limit in ppm. */
+  ammoniaLimit: number;
+  /** Maximum acceptable heat stress index (0–1). */
+  heatStressThreshold: number;
+  /** Total building volume in m³. */
+  buildingVolume: number;
+  /** Livestock type for metabolic heat model. */
+  livestockType: "poultry" | "swine" | "dairy" | "beef";
+}
+
+export interface HeatStressAssessment {
+  /** Overall heat stress index (0–1, 1 = severe). */
+  overallIndex: number;
+  /** Per-zone breakdown. */
+  zoneAssessments: ZoneHeatStress[];
+  /** Risk level classification. */
+  riskLevel: "safe" | "caution" | "danger" | "emergency";
+  /** Recommended mitigations. */
+  mitigations: string[];
+}
+
+export interface ZoneHeatStress {
+  zoneId: string;
+  zoneName: string;
+  /** Temperature-humidity index (THI). */
+  temperatureHumidityIndex: number;
+  /** Effective temperature felt by animals in °C. */
+  effectiveTemperature: number;
+  /** Airflow velocity at animal level in m/s. */
+  airVelocityAtAnimalLevel: number;
+  /** Heat stress index for this zone (0–1). */
+  heatStressIndex: number;
+}
+
+export interface AmmoniaRiskAssessment {
+  /** Overall ammonia risk score (0–1, 0 = safe). */
+  overallRisk: number;
+  /** Per-zone ammonia levels. */
+  zoneConcentrations: ZoneAmmoniaLevel[];
+  /** Zones exceeding the limit. */
+  exceedingZones: string[];
+  /** Estimated daily ammonia emission in kg/day. */
+  dailyEmission: number;
+  /** Recommended mitigations. */
+  mitigations: string[];
+}
+
+export interface ZoneAmmoniaLevel {
+  zoneId: string;
+  zoneName: string;
+  /** Average ammonia concentration in ppm. */
+  concentration: number;
+  /** Peak ammonia concentration in ppm. */
+  peakConcentration: number;
+  /** Exceeds regulatory limit. */
+  exceedsLimit: boolean;
 }
 
 export interface HumanReadableSummary {

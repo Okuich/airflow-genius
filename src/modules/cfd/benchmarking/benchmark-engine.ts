@@ -24,6 +24,7 @@ export type GeometryCluster =
   | "heat-exchanger"
   | "cleanroom"
   | "exhaust-system"
+  | "agriculture-ventilation"
   | "generic";
 
 export interface BenchmarkReport {
@@ -127,6 +128,9 @@ export class BenchmarkEngine {
 
   /** Deterministic geometry classification based on config features. */
   classifyGeometry(config: SimulationConfig): GeometryCluster {
+    // Agriculture ventilation: has multi-zone model or agriculture flow type
+    if (this.isAgricultureConfig(config)) return "agriculture-ventilation";
+
     // Exhaust system: has species transport or exhaust flow type
     if (this.isExhaustConfig(config)) return "exhaust-system";
 
@@ -186,6 +190,14 @@ export class BenchmarkEngine {
       "exhaustBoundaryIds" in config ||
       config.flowType === FlowType.ExhaustVentilation ||
       config.flowType === FlowType.BuoyancyDriven
+    );
+  }
+
+  private isAgricultureConfig(config: SimulationConfig): boolean {
+    return (
+      "multiZoneModel" in config ||
+      "moistureTransport" in config ||
+      config.flowType === FlowType.AgricultureVentilation
     );
   }
 
@@ -436,6 +448,22 @@ export class BenchmarkEngine {
           category: "mesh",
           message: `Mesh quality may be insufficient for particle tracking — sub-micron particles require fine mesh near injection surfaces and walls.`,
           relevance: 0.9,
+        });
+      }
+    }
+
+    // Agriculture-ventilation-specific insights
+    if (cluster === "agriculture-ventilation") {
+      insights.push({
+        category: "efficiency",
+        message: `Agricultural ventilation simulation detected. Multi-zone airflow uniformity and ammonia concentrations are critical for livestock welfare.`,
+        relevance: 0.85,
+      });
+      if (features.convergenceSpeed < 0.4) {
+        insights.push({
+          category: "convergence",
+          message: `Buoyancy-driven flows in livestock buildings often converge slowly — consider pseudo-transient stepping or lower relaxation factors.`,
+          relevance: 0.8,
         });
       }
     }
