@@ -5,3 +5,5 @@
 
 export { HeatStressPredictor } from "./heat-stress-predictor";
 export { AmmoniaRiskEstimator } from "./ammonia-risk-estimator";
+export { AgricultureMetricsExporter, downloadBlob } from "./agriculture-metrics-exporter";
+export type { AgricultureExportPayload, AgricultureExportFormat, RegulatoryReference } from "./agriculture-metrics-exporter";
