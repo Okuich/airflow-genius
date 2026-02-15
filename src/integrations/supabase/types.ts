@@ -91,6 +91,62 @@ export type Database = {
         }
         Relationships: []
       }
+      compliance_reports: {
+        Row: {
+          created_at: string
+          created_by: string
+          domain: string
+          filters: Json
+          findings: Json
+          format: string
+          id: string
+          organization_id: string
+          overall_score: number
+          regulatory_references: Json
+          simulation_id: string | null
+          title: string
+          verdict: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          domain: string
+          filters?: Json
+          findings?: Json
+          format?: string
+          id?: string
+          organization_id: string
+          overall_score?: number
+          regulatory_references?: Json
+          simulation_id?: string | null
+          title: string
+          verdict: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          domain?: string
+          filters?: Json
+          findings?: Json
+          format?: string
+          id?: string
+          organization_id?: string
+          overall_score?: number
+          regulatory_references?: Json
+          simulation_id?: string | null
+          title?: string
+          verdict?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_reports_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_sync_log: {
         Row: {
           ai_model: string | null

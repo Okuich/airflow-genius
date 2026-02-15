@@ -64,3 +64,47 @@ export interface RiskScoreResponse {
 export interface ComplianceApiError {
   error: string;
 }
+
+// ── Reports API Types ──────────────────────────────────────────────────────
+
+export interface GenerateReportRequest {
+  organization_id: string;
+  simulation_id?: string;
+  domain: AirflowComplianceDomain;
+  title: string;
+  verdict?: string;
+  overall_score?: number;
+  findings?: ComplianceFinding[];
+  regulatory_references?: { standard: string; authority: string; title: string; editionYear: number }[];
+  filters?: {
+    dateFrom?: string;
+    dateTo?: string;
+    standards?: string[];
+    domain?: string;
+  };
+  format?: "json" | "pdf" | "csv";
+}
+
+export interface ComplianceReport {
+  id: string;
+  organization_id: string;
+  simulation_id: string | null;
+  domain: string;
+  title: string;
+  verdict: string;
+  overall_score: number;
+  findings: ComplianceFinding[];
+  regulatory_references: { standard: string; authority: string; title: string; editionYear: number }[];
+  filters: Record<string, unknown>;
+  format: string;
+  created_by: string;
+  created_at: string;
+}
+
+export interface ListReportsParams {
+  organization_id: string;
+  domain?: string;
+  date_from?: string;
+  date_to?: string;
+  limit?: number;
+}
