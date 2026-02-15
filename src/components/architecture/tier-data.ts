@@ -1,0 +1,279 @@
+import {
+  Globe, Shield, Network, Brain, Cpu, Database, HardDrive,
+  Cloud, Workflow, BarChart3, Gauge, FileText, Lock,
+  ServerCog, MonitorCog,
+} from "lucide-react";
+import type { Tier, RegionConfig } from "./types";
+
+export const REGIONS: RegionConfig[] = [
+  { id: "primary", label: "Primary", location: "us-east-1", status: "active" },
+  { id: "secondary", label: "Secondary", location: "eu-west-1", status: "syncing" },
+];
+
+const PRIMARY_TIERS: Tier[] = [
+  {
+    id: "edge",
+    label: "Edge Layer",
+    color: "data-cyan",
+    nodes: [
+      {
+        id: "lb",
+        label: "Regional Load Balancer",
+        icon: Globe,
+        description: "Distributes traffic across availability zones with health-check failover and geo-routing.",
+        status: "healthy",
+        metrics: [
+          { label: "Req/s", value: "12.4k" },
+          { label: "P99 Latency", value: "18ms" },
+          { label: "Active Regions", value: "3" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "gateway",
+    label: "Gateway Layer",
+    color: "data-emerald",
+    nodes: [
+      {
+        id: "api-gw",
+        label: "API Gateway",
+        icon: Network,
+        description: "Rate limiting, JWT validation, request routing, and OpenAPI schema enforcement.",
+        status: "healthy",
+        metrics: [
+          { label: "Routes", value: "47" },
+          { label: "Rate Limit", value: "1k/min" },
+          { label: "Cache Hit", value: "82%" },
+        ],
+      },
+      {
+        id: "cdn",
+        label: "Web Frontend (CDN edge)",
+        icon: Cloud,
+        description: "Static assets served from 42 global PoPs with Brotli compression and immutable caching.",
+        status: "healthy",
+        metrics: [
+          { label: "PoPs", value: "42" },
+          { label: "Cache Hit", value: "97.3%" },
+          { label: "TTFB", value: "24ms" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "services",
+    label: "Application Services",
+    color: "data-violet",
+    nodes: [
+      {
+        id: "auth",
+        label: "Auth Service",
+        icon: Lock,
+        description: "RBAC-enforced authentication with JWT, MFA, and organization-scoped sessions.",
+        status: "healthy",
+        metrics: [
+          { label: "Active Sessions", value: "1,247" },
+          { label: "MFA Enrolled", value: "68%" },
+        ],
+      },
+      {
+        id: "compliance",
+        label: "Compliance Engine",
+        icon: Shield,
+        description: "Real-time ASHRAE/ISO/OSHA evaluation with risk scoring and audit trail.",
+        status: "healthy",
+        metrics: [
+          { label: "Rules Active", value: "312" },
+          { label: "Last Scan", value: "2m ago" },
+          { label: "Compliance", value: "94.2%" },
+        ],
+      },
+      {
+        id: "ai-agent",
+        label: "AI Agent Service",
+        icon: Brain,
+        description: "Autonomous CFD diagnostic agent with structured tool-calling and streaming responses.",
+        status: "healthy",
+        metrics: [
+          { label: "Resolution Rate", value: "96.1%" },
+          { label: "Avg Response", value: "1.8s" },
+        ],
+      },
+      {
+        id: "cfd-orch",
+        label: "CFD Orchestration",
+        icon: Workflow,
+        description: "Pipeline management for simulation lifecycle: mesh → solve → post-process → report.",
+        status: "healthy",
+        metrics: [
+          { label: "Active Pipelines", value: "8" },
+          { label: "Queue Depth", value: "3" },
+        ],
+      },
+      {
+        id: "benchmark",
+        label: "Benchmark Engine",
+        icon: BarChart3,
+        description: "Automated performance benchmarking against reference cases with regression detection.",
+        status: "healthy",
+        metrics: [
+          { label: "Test Suite", value: "24 cases" },
+          { label: "Last Run", value: "4h ago" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "compute",
+    label: "Compute Layer",
+    color: "data-amber",
+    nodes: [
+      {
+        id: "gpu-pool",
+        label: "GPU Compute Pool",
+        icon: Cpu,
+        description: "Auto-scaling GPU cluster for CFD solver execution with spot instance optimization.",
+        status: "healthy",
+        metrics: [
+          { label: "GPUs Online", value: "16" },
+          { label: "Utilization", value: "73%" },
+          { label: "Queue Wait", value: "< 30s" },
+        ],
+      },
+      {
+        id: "ml-nodes",
+        label: "ML Training Node Pool",
+        icon: Gauge,
+        description: "Dedicated training nodes for surrogate model training with checkpointing.",
+        status: "healthy",
+        metrics: [
+          { label: "Nodes", value: "4" },
+          { label: "Active Jobs", value: "2" },
+          { label: "Epoch/hr", value: "142" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "data",
+    label: "Data Layer",
+    color: "data-rose",
+    nodes: [
+      {
+        id: "db",
+        label: "Regional Database",
+        icon: Database,
+        description: "PostgreSQL with RLS, row-level multi-tenancy, point-in-time recovery, and read replicas.",
+        status: "healthy",
+        metrics: [
+          { label: "Tables", value: "14" },
+          { label: "RLS Policies", value: "42" },
+          { label: "Connections", value: "127" },
+        ],
+      },
+      {
+        id: "storage",
+        label: "Object Storage",
+        icon: HardDrive,
+        description: "Simulation results, mesh files, and ML model artifacts with lifecycle policies.",
+        status: "healthy",
+        metrics: [
+          { label: "Objects", value: "18.4k" },
+          { label: "Total Size", value: "2.1 TB" },
+        ],
+      },
+      {
+        id: "audit",
+        label: "Audit Log Storage",
+        icon: FileText,
+        description: "Immutable, append-only audit log with 7-year retention for regulatory compliance.",
+        status: "healthy",
+        metrics: [
+          { label: "Events/day", value: "34k" },
+          { label: "Retention", value: "7 years" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "iac",
+    label: "Infrastructure as Code",
+    color: "data-cyan",
+    nodes: [
+      {
+        id: "tf-networking",
+        label: "networking",
+        icon: Network,
+        description: "Terraform module managing VPC, subnets, security groups, and cross-region peering.",
+        status: "healthy",
+        metrics: [
+          { label: "Resources", value: "34" },
+          { label: "Drift", value: "None" },
+        ],
+      },
+      {
+        id: "tf-compute",
+        label: "compute",
+        icon: ServerCog,
+        description: "Auto-scaling compute instances with launch templates, target groups, and health checks.",
+        status: "healthy",
+        metrics: [
+          { label: "Instances", value: "12" },
+          { label: "AMI Age", value: "3d" },
+        ],
+      },
+      {
+        id: "tf-database",
+        label: "database",
+        icon: Database,
+        description: "RDS/Aurora provisioning with automated backups, parameter groups, and read replicas.",
+        status: "healthy",
+        metrics: [
+          { label: "Clusters", value: "2" },
+          { label: "Backup RPO", value: "5 min" },
+        ],
+      },
+      {
+        id: "tf-gpu-pool",
+        label: "gpu-pool",
+        icon: Cpu,
+        description: "GPU instance fleet with spot/on-demand mix, placement groups, and EFA networking.",
+        status: "healthy",
+        metrics: [
+          { label: "Spot Ratio", value: "60%" },
+          { label: "Cost/hr", value: "$4.12" },
+        ],
+      },
+      {
+        id: "tf-monitoring",
+        label: "monitoring",
+        icon: MonitorCog,
+        description: "CloudWatch dashboards, alarms, log groups, and metric filters for all infrastructure tiers.",
+        status: "healthy",
+        metrics: [
+          { label: "Alarms", value: "48" },
+          { label: "Dashboards", value: "6" },
+        ],
+      },
+    ],
+  },
+];
+
+const SECONDARY_TIERS: Tier[] = PRIMARY_TIERS.map((tier) => ({
+  ...tier,
+  nodes: tier.nodes.map((node) => {
+    // Secondary has reduced capacity and some services in standby
+    const overrides: Record<string, Partial<typeof node>> = {
+      lb: { metrics: [{ label: "Req/s", value: "1.2k" }, { label: "P99 Latency", value: "22ms" }, { label: "Mode", value: "Standby" }] },
+      "gpu-pool": { status: "degraded" as const, metrics: [{ label: "GPUs Online", value: "4" }, { label: "Utilization", value: "12%" }, { label: "Mode", value: "Warm standby" }] },
+      "ml-nodes": { status: "offline" as const, metrics: [{ label: "Nodes", value: "0" }, { label: "Mode", value: "Cold standby" }] },
+      db: { metrics: [{ label: "Tables", value: "14" }, { label: "Replication Lag", value: "240ms" }, { label: "Mode", value: "Read replica" }] },
+    };
+    return { ...node, ...overrides[node.id] };
+  }),
+}));
+
+export function getTiersForRegion(region: "primary" | "secondary"): Tier[] {
+  return region === "primary" ? PRIMARY_TIERS : SECONDARY_TIERS;
+}
