@@ -397,6 +397,28 @@ export enum LogLevel {
 
 // ── ML / Surrogate Models ───────────────────────────────────────────────────
 
+/** Post-simulation feature vector derived from results (deterministic). */
+export interface FeatureVector {
+  reynoldsNumber: number;
+  turbulenceIntensity: number;
+  pressureDrop: number;
+  efficiency: number;
+  meshQualityScore: number;
+  convergenceSpeed: number;
+}
+
+/** Input bundle for results-based feature extraction. */
+export interface SimulationResults {
+  config: SimulationConfig;
+  meshStats: MeshStats;
+  residuals: ResidualData[];
+  pressureDrop: number;
+  efficiencyRating: EfficiencyRating;
+  solveTimeSeconds: number;
+  totalIterations: number;
+  converged: boolean;
+}
+
 export type SurrogateModelType = "pressure_drop" | "convergence" | "efficiency";
 
 export interface SimulationFeatureVector {
