@@ -426,6 +426,17 @@ export interface BoundaryBackflowRisk {
   meanReverseVelocity: number;
 }
 
+export interface AgricultureVentilationMetrics {
+  /** Ammonia concentration in ppm at animal breathing zone. */
+  ammoniaConcentration: number;
+  /** Heat stress index (0–1, 1 = severe heat stress). */
+  heatStressIndex: number;
+  /** Stability of relative humidity across the enclosure (0–1, 1 = perfectly stable). */
+  humidityStability: number;
+  /** Spatial uniformity of airflow distribution (0–1, 1 = uniform). */
+  airflowUniformityIndex: number;
+}
+
 export interface HumanReadableSummary {
   keyFindings: string[];
   pressureLossEstimate: number;
