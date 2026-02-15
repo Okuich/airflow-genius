@@ -15,6 +15,7 @@ import type {
 } from "@/packages/types";
 import { RULE_LIBRARY } from "@/packages/compliance-knowledge";
 import { STANDARD_CATALOG } from "@/packages/compliance-knowledge/standard-catalog";
+import { MeshQualityAnalyzer, type MeshQualityThresholds } from "@/modules/cfd/diagnostics";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -58,6 +59,17 @@ export interface DigitalSignaturePlaceholder {
   status: "pending" | "signed" | "rejected";
 }
 
+/** Mesh diagnostics section for compliance reports. */
+export interface ReportMeshDiagnostics {
+  skewnessIssues: number;
+  aspectRatioIssues: number;
+  skewnessFailRate: number;
+  aspectRatioFailRate: number;
+  wallResolutionQuality: "Poor" | "Acceptable" | "Good";
+  yPlusStats: { min: number; max: number; mean: number; median: number };
+  remediationSteps: string[];
+}
+
 export interface ComplianceReportDocument {
   /** Deterministic report ID derived from metadata hash. */
   reportId: string;
@@ -86,6 +98,9 @@ export interface ComplianceReportDocument {
   /** Digital signature placeholders. */
   signatures: DigitalSignaturePlaceholder[];
 
+  /** Mesh quality diagnostics with auto-generated remediation steps. */
+  meshDiagnostics?: ReportMeshDiagnostics;
+
   /** Raw data hash inputs (for audit reproducibility). */
   integrityManifest: {
     findingCount: number;
@@ -97,12 +112,21 @@ export interface ComplianceReportDocument {
   };
 }
 
+export interface MeshDataInput {
+  cellSkewness: number[];
+  aspectRatios: number[];
+  yPlusValues: number[];
+  thresholds?: Partial<MeshQualityThresholds>;
+}
+
 export interface ReportGeneratorInput {
   simulationId: string;
   organizationId: string;
   findings: ComplianceFinding[];
   riskReport: ComplianceRiskReport;
   standardMappings?: StandardMapping[];
+  /** Optional mesh data — when provided, mesh diagnostics are included in the report. */
+  meshData?: MeshDataInput;
   /** Override timestamp for deterministic tests. */
   timestamp?: string;
 }
@@ -144,6 +168,11 @@ export class ComplianceReportGenerator {
     // ── Signatures ───────────────────────────────────────────────────────
     const signatures = this.buildSignaturePlaceholders(riskSummary.verdict);
 
+    // ── Mesh diagnostics ─────────────────────────────────────────────────
+    const meshDiagnostics = input.meshData
+      ? this.buildMeshDiagnostics(input.meshData)
+      : undefined;
+
     // ── Integrity manifest ───────────────────────────────────────────────
     const ruleIdsEvaluated = [...input.findings.map((f) => f.ruleId)].sort();
     const failCount = input.findings.filter((f) => f.status === "Fail").length;
@@ -161,6 +190,7 @@ export class ComplianceReportGenerator {
       findings,
       regulatoryReferences,
       signatures,
+      meshDiagnostics,
       integrityManifest: {
         findingCount: input.findings.length,
         failCount,
@@ -371,5 +401,69 @@ export class ComplianceReportGenerator {
     }
 
     return signatures;
+  }
+
+  // ── Mesh Diagnostics ──────────────────────────────────────────────────
+
+  private buildMeshDiagnostics(meshData: MeshDataInput): ReportMeshDiagnostics {
+    const analyzer = new MeshQualityAnalyzer(meshData.thresholds);
+    const report = analyzer.analyse(
+      meshData.cellSkewness,
+      meshData.aspectRatios,
+      meshData.yPlusValues
+    );
+
+    // Build actionable remediation steps from suggestions + cross-domain knowledge
+    const remediationSteps: string[] = [];
+
+    if (report.skewnessFailRate > 0.1) {
+      remediationSteps.push(
+        "CRITICAL: Re-mesh regions with skewness > 0.85 using smaller base cell size and 3+ Laplacian smoothing passes"
+      );
+    } else if (report.skewnessIssues > 0) {
+      remediationSteps.push(
+        "Apply 2–3 Laplacian smoothing iterations to reduce skewness in affected cells"
+      );
+    }
+
+    if (report.aspectRatioFailRate > 0.05) {
+      remediationSteps.push(
+        "Reduce boundary-layer growth rate to 1.1–1.15 and add local size controls near thin surfaces to lower aspect ratios"
+      );
+    }
+
+    if (report.wallResolutionQuality === "Poor") {
+      if (report.yPlusStats.mean > 300) {
+        remediationSteps.push(
+          "Add boundary-layer prism cells: target first-cell height for y+ ≈ 50, use 10–15 layers with growth rate 1.2"
+        );
+      } else if (report.yPlusStats.mean < 1) {
+        remediationSteps.push(
+          "y+ is very low — consider switching to wall-function turbulence model or increasing first-cell height to reduce cell count"
+        );
+      } else {
+        remediationSteps.push(
+          "Adjust first-cell height to bring y+ within wall-function range (30–300) or wall-resolved range (< 1)"
+        );
+      }
+    } else if (report.wallResolutionQuality === "Acceptable") {
+      remediationSteps.push(
+        "Fine-tune first-cell height for more uniform y+ distribution across all wall surfaces"
+      );
+    }
+
+    if (remediationSteps.length === 0) {
+      remediationSteps.push("Mesh quality is within acceptable limits — no remediation required");
+    }
+
+    return {
+      skewnessIssues: report.skewnessIssues,
+      aspectRatioIssues: report.aspectRatioIssues,
+      skewnessFailRate: report.skewnessFailRate,
+      aspectRatioFailRate: report.aspectRatioFailRate,
+      wallResolutionQuality: report.wallResolutionQuality,
+      yPlusStats: report.yPlusStats,
+      remediationSteps,
+    };
   }
 }

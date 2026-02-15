@@ -13,6 +13,22 @@ export {
 // ── AI Text Generator Interface (pluggable) ───────────────────────────────
 
 import type { HumanReadableSummary, VelocityFieldEntry, PressureFieldEntry, TemperatureFieldEntry, EfficiencyMetrics } from "@/packages/types";
+import { MeshQualityAnalyzer, type MeshQualityReport, type MeshQualityThresholds } from "@/modules/cfd/diagnostics";
+
+export type { MeshQualityReport };
+
+/** Extended summary that includes mesh diagnostics when mesh data is provided. */
+export interface EnhancedSummary extends HumanReadableSummary {
+  meshDiagnostics?: MeshQualityReport;
+}
+
+/** Optional mesh data for enriched interpretation. */
+export interface MeshDiagnosticsInput {
+  cellSkewness: number[];
+  aspectRatios: number[];
+  yPlusValues: number[];
+  thresholds?: Partial<MeshQualityThresholds>;
+}
 
 export interface AISummaryGenerator {
   generateNarrative(summary: HumanReadableSummary, context: string): Promise<string>;
@@ -85,16 +101,24 @@ export function rateEfficiency(metrics: EfficiencyMetrics): import("@/packages/t
 
 export class CFDResultsInterpreter {
   private readonly aiGenerator: AISummaryGenerator;
-  constructor(aiGenerator?: AISummaryGenerator) {
+  private readonly meshAnalyzer: MeshQualityAnalyzer;
+
+  constructor(aiGenerator?: AISummaryGenerator, meshThresholds?: Partial<MeshQualityThresholds>) {
     this.aiGenerator = aiGenerator ?? new PlaceholderAIGenerator();
+    this.meshAnalyzer = new MeshQualityAnalyzer(meshThresholds);
   }
 
+  /**
+   * Interpret CFD results. Optionally pass mesh data to auto-generate
+   * remeshing / boundary-layer refinement recommendations.
+   */
   interpret(
     velocityField: VelocityFieldEntry[],
     pressureField: PressureFieldEntry[],
     temperatureField: TemperatureFieldEntry[],
-    metrics: EfficiencyMetrics
-  ): HumanReadableSummary {
+    metrics: EfficiencyMetrics,
+    meshInput?: MeshDiagnosticsInput
+  ): EnhancedSummary {
     const velStats = computeFieldStats(velocityField.map((v) => v.magnitude));
     const presStats = computeFieldStats(pressureField.map((p) => p.staticPressure));
     const tempStats = temperatureField.length > 0
@@ -124,9 +148,55 @@ export class CFDResultsInterpreter {
     if (velStats.stdDev / velStats.mean > 0.6) recommendations.push("High velocity non-uniformity at outlet — add flow straighteners");
     if (pressureLoss > Math.abs(metrics.totalPressureRiseOrDrop) * 0.3) recommendations.push("Pressure losses exceed 30% of total pressure rise — check for recirculation");
     if (tempStats && tempStats.max - tempStats.min > 50) recommendations.push("Large temperature gradient (>50 K) — verify thermal boundary conditions");
+
+    // ── Mesh diagnostics integration ─────────────────────────────────────
+    let meshDiagnostics: MeshQualityReport | undefined;
+
+    if (meshInput) {
+      const analyzer = meshInput.thresholds
+        ? new MeshQualityAnalyzer(meshInput.thresholds)
+        : this.meshAnalyzer;
+
+      meshDiagnostics = analyzer.analyse(
+        meshInput.cellSkewness,
+        meshInput.aspectRatios,
+        meshInput.yPlusValues
+      );
+
+      // Inject mesh findings
+      findings.push(`Mesh quality — skewness issues: ${meshDiagnostics.skewnessIssues}, aspect-ratio issues: ${meshDiagnostics.aspectRatioIssues}, wall resolution: ${meshDiagnostics.wallResolutionQuality}`);
+
+      // Auto-suggest remeshing or BL refinements
+      for (const suggestion of meshDiagnostics.suggestions) {
+        if (!suggestion.includes("No changes recommended")) {
+          recommendations.push(`[Mesh] ${suggestion}`);
+        }
+      }
+
+      // Cross-correlate: separation zones near poor mesh → stronger remeshing advice
+      if (separationZones > 0 && meshDiagnostics.skewnessFailRate > 0.05) {
+        recommendations.push(
+          "[Mesh+Flow] Flow separation co-located with high-skewness cells — prioritize local remeshing in separation regions to improve solution accuracy"
+        );
+      }
+
+      if (rating === "Poor" && meshDiagnostics.wallResolutionQuality === "Poor") {
+        recommendations.push(
+          "[Mesh+Perf] Poor efficiency with inadequate wall resolution — refine boundary layers before drawing performance conclusions"
+        );
+      }
+    }
+
     if (recommendations.length === 0) recommendations.push("Results appear nominal — no corrective actions required");
 
-    return { keyFindings: findings, pressureLossEstimate: pressureLoss, efficiencyRating: rating, flowSeparationZones: separationZones, recommendations };
+    return {
+      keyFindings: findings,
+      pressureLossEstimate: pressureLoss,
+      efficiencyRating: rating,
+      flowSeparationZones: separationZones,
+      recommendations,
+      meshDiagnostics,
+    };
   }
 
   async generateAINarrative(summary: HumanReadableSummary, simulationName: string): Promise<string> {

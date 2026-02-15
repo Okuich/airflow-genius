@@ -29,4 +29,6 @@ export type {
   ReportRiskSummary,
   RegulatoryReference,
   DigitalSignaturePlaceholder,
+  ReportMeshDiagnostics,
+  MeshDataInput,
 } from "./compliance-report-generator";
