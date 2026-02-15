@@ -394,3 +394,113 @@ export enum LogLevel {
   WARN = "WARN",
   ERROR = "ERROR",
 }
+
+// ── ML / Surrogate Models ───────────────────────────────────────────────────
+
+export type SurrogateModelType = "pressure_drop" | "convergence" | "efficiency";
+
+export interface SimulationFeatureVector {
+  // Mesh features
+  cellCount: number;
+  baseSize: number;
+  refinementLevels: number;
+  boundaryLayerCount: number;
+  boundaryLayerGrowthRate: number;
+  qualityThreshold: number;
+
+  // Solver features
+  flowType: number; // 0 = steady, 1 = transient
+  turbulenceModel: number; // one-hot encoded index
+  maxIterations: number;
+  convergenceCriteria: number;
+  relaxationPressure: number;
+  relaxationVelocity: number;
+  relaxationTurbulence: number;
+
+  // Fluid features
+  fluidDensity: number;
+  fluidViscosity: number;
+  reynoldsNumber: number; // derived
+
+  // Boundary features
+  inletCount: number;
+  outletCount: number;
+  wallCount: number;
+  maxInletVelocity: number;
+  avgInletVelocity: number;
+
+  // Rotating machinery
+  hasRotatingFrame: number; // 0 or 1
+  rpm: number;
+}
+
+export interface SimulationLabels {
+  pressureDrop: number | null;
+  converged: number | null; // 0 or 1
+  iterationsToConverge: number | null;
+  efficiencyRating: number | null; // 0=Poor, 1=Avg, 2=Good, 3=Excellent
+  totalPressureLoss: number | null;
+  solveTimeSeconds: number | null;
+}
+
+export interface NormalizationParams {
+  mean: number[];
+  std: number[];
+  featureNames: string[];
+}
+
+export interface SurrogateModelWeights {
+  coefficients: number[];
+  intercept: number;
+  featureNames: string[];
+}
+
+export interface SurrogateModelMetrics {
+  mse: number;
+  mae: number;
+  r2: number;
+  sampleCount: number;
+  trainedAt: string;
+}
+
+export interface SurrogateModelVersion {
+  id: string;
+  organizationId: string;
+  modelType: SurrogateModelType;
+  version: number;
+  weights: SurrogateModelWeights;
+  normalization: NormalizationParams;
+  metrics: SurrogateModelMetrics;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface SurrogatePrediction {
+  modelType: SurrogateModelType;
+  value: number;
+  confidence: number;
+  modelVersion: number;
+}
+
+export interface SimulationCompletedEvent {
+  simulationId: string;
+  organizationId: string;
+  userId: string;
+  config: SimulationConfig;
+  results: {
+    converged: boolean;
+    totalIterations: number;
+    finalResiduals: ResidualSnapshot;
+    pressureDrop: number;
+    efficiencyRating: EfficiencyRating;
+    solveTimeSeconds: number;
+  };
+  timestamp: string;
+}
+
+export interface SurrogateRecommendation {
+  type: "mesh" | "solver" | "boundary" | "general";
+  message: string;
+  confidence: number;
+  predictedImprovement: string;
+}
