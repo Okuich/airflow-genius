@@ -3,7 +3,7 @@ import { AppSidebar } from "@/components/layout/AppSidebar";
 import {
   Globe, Shield, Network, Brain, Cpu, Database, HardDrive,
   Server, Cloud, Workflow, BarChart3, Gauge, FileText, Lock,
-  ChevronRight, Activity
+  ChevronRight, Activity, FolderCode, MonitorCog, Boxes, ServerCog
 } from "lucide-react";
 
 // ── Tier Definitions ────────────────────────────────────────────────────────
@@ -206,6 +206,68 @@ const TIERS: Tier[] = [
         metrics: [
           { label: "Events/day", value: "34k" },
           { label: "Retention", value: "7 years" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "iac",
+    label: "Infrastructure as Code",
+    color: "data-cyan",
+    nodes: [
+      {
+        id: "tf-networking",
+        label: "networking",
+        icon: Network,
+        description: "Terraform module managing VPC, subnets, security groups, and cross-region peering.",
+        status: "healthy",
+        metrics: [
+          { label: "Resources", value: "34" },
+          { label: "Drift", value: "None" },
+        ],
+      },
+      {
+        id: "tf-compute",
+        label: "compute",
+        icon: ServerCog,
+        description: "Auto-scaling compute instances with launch templates, target groups, and health checks.",
+        status: "healthy",
+        metrics: [
+          { label: "Instances", value: "12" },
+          { label: "AMI Age", value: "3d" },
+        ],
+      },
+      {
+        id: "tf-database",
+        label: "database",
+        icon: Database,
+        description: "RDS/Aurora provisioning with automated backups, parameter groups, and read replicas.",
+        status: "healthy",
+        metrics: [
+          { label: "Clusters", value: "2" },
+          { label: "Backup RPO", value: "5 min" },
+        ],
+      },
+      {
+        id: "tf-gpu-pool",
+        label: "gpu-pool",
+        icon: Cpu,
+        description: "GPU instance fleet with spot/on-demand mix, placement groups, and EFA networking.",
+        status: "healthy",
+        metrics: [
+          { label: "Spot Ratio", value: "60%" },
+          { label: "Cost/hr", value: "$4.12" },
+        ],
+      },
+      {
+        id: "tf-monitoring",
+        label: "monitoring",
+        icon: MonitorCog,
+        description: "CloudWatch dashboards, alarms, log groups, and metric filters for all infrastructure tiers.",
+        status: "healthy",
+        metrics: [
+          { label: "Alarms", value: "48" },
+          { label: "Dashboards", value: "6" },
         ],
       },
     ],
