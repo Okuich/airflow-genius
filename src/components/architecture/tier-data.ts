@@ -469,6 +469,59 @@ const GOVCLOUD_TIERS: Tier[] = [
       },
     ],
   },
+  {
+    id: "gov-packages",
+    label: "GovCloud Packages",
+    color: "data-violet",
+    nodes: [
+      {
+        id: "gov-pkg-security",
+        label: "gov-security",
+        icon: ShieldCheck,
+        description: "Core security primitives library: mTLS helpers, token validation, RBAC enforcement, and audit event emitters.",
+        status: "healthy",
+        metrics: [
+          { label: "Version", value: "2.4.1" },
+          { label: "Dependents", value: "11" },
+        ],
+      },
+      {
+        id: "gov-pkg-fedramp",
+        label: "fedramp-controls",
+        icon: Shield,
+        description: "NIST 800-53 control mapping with automated evidence collection, continuous compliance scoring, and POA&M generation.",
+        status: "healthy",
+        metrics: [
+          { label: "Controls", value: "325" },
+          { label: "Automated", value: "87%" },
+          { label: "Last Scan", value: "12m ago" },
+        ],
+      },
+      {
+        id: "gov-pkg-monitoring",
+        label: "monitoring",
+        icon: MonitorCog,
+        description: "Observability SDK for GovCloud services: structured logging, metric emission, distributed tracing, and alert routing.",
+        status: "healthy",
+        metrics: [
+          { label: "Version", value: "1.8.0" },
+          { label: "Trace Coverage", value: "94%" },
+        ],
+      },
+      {
+        id: "gov-pkg-infra-guard",
+        label: "infrastructure-guard",
+        icon: Lock,
+        description: "Policy-as-code engine enforcing infrastructure invariants: no public endpoints, encryption-at-rest checks, and drift detection.",
+        status: "healthy",
+        metrics: [
+          { label: "Policies", value: "48" },
+          { label: "Violations", value: "0" },
+          { label: "Drift", value: "None" },
+        ],
+      },
+    ],
+  },
 ];
 
 export function getTiersForRegion(region: "primary" | "secondary" | "govcloud"): Tier[] {
