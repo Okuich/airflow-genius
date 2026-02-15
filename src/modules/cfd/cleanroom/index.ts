@@ -5,3 +5,18 @@ export type {
   ISOClassification,
   ClassifierConfig,
 } from "./iso-classifier";
+export {
+  CleanroomSampleSchema,
+  CleanroomSampleBatchSchema,
+  ClassifierConfigSchema,
+  ZoneIngestionSchema,
+  validateSample,
+  validateSampleBatch,
+  validateClassifierConfig,
+  validateZoneIngestion,
+} from "./schemas";
+export type {
+  ValidatedCleanroomSample,
+  ValidatedClassifierConfig,
+  ValidatedZoneIngestion,
+} from "./schemas";
