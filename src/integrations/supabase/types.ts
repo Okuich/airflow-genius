@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      cleanroom_samples: {
+        Row: {
+          air_change_rate: number
+          created_at: string
+          id: string
+          laminar_stability: number
+          organization_id: string
+          particle_retention: number
+          timestamp: string
+          zone_name: string
+        }
+        Insert: {
+          air_change_rate: number
+          created_at?: string
+          id?: string
+          laminar_stability: number
+          organization_id: string
+          particle_retention: number
+          timestamp?: string
+          zone_name?: string
+        }
+        Update: {
+          air_change_rate?: number
+          created_at?: string
+          id?: string
+          laminar_stability?: number
+          organization_id?: string
+          particle_retention?: number
+          timestamp?: string
+          zone_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleanroom_samples_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compute_usage: {
         Row: {
           cost_usd: number

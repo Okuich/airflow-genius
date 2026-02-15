@@ -20,3 +20,5 @@ export type {
   ValidatedClassifierConfig,
   ValidatedZoneIngestion,
 } from "./schemas";
+export { cleanroomApi } from "./cleanroom-api-client";
+export type { CleanroomSampleRow } from "./cleanroom-api-client";
