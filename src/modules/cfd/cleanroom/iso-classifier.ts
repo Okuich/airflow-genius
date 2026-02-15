@@ -4,6 +4,13 @@
 // automatically as new sample windows arrive.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import {
+  CleanroomSampleSchema,
+  CleanroomSampleBatchSchema,
+  ClassifierConfigSchema,
+  ZoneIngestionSchema,
+} from "./schemas";
+
 export interface CleanroomSample {
   timestamp: number;
   airChangeRate: number;       // ACH
@@ -120,13 +127,20 @@ export class ISOClassifier {
   private lastClassification: ISOClassification | null = null;
 
   constructor(config: Partial<ClassifierConfig> = {}) {
-    this.config = { ...DEFAULT_CLASSIFIER_CONFIG, ...config };
+    const parsed = ClassifierConfigSchema.safeParse({ ...DEFAULT_CLASSIFIER_CONFIG, ...config });
+    if (!parsed.success) {
+      throw new Error(`Invalid classifier config: ${parsed.error.issues.map((i) => i.message).join("; ")}`);
+    }
+    this.config = parsed.data as ClassifierConfig;
   }
 
-  /** Ingest a new sample and recompute classification */
+  /** Ingest a new sample and recompute classification. Validates input. */
   addSample(sample: CleanroomSample): ISOClassification {
-    this.samples.push(sample);
-    // Keep a rolling window (max 168 = 1 week hourly)
+    const parsed = CleanroomSampleSchema.safeParse(sample);
+    if (!parsed.success) {
+      throw new Error(`Invalid sample: ${parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`);
+    }
+    this.samples.push(parsed.data as CleanroomSample);
     if (this.samples.length > 168) {
       this.samples = this.samples.slice(-168);
     }
@@ -134,9 +148,13 @@ export class ISOClassifier {
     return this.lastClassification;
   }
 
-  /** Bulk-load samples (e.g. from time series) */
+  /** Bulk-load samples (e.g. from time series). Validates all inputs. */
   loadSamples(samples: CleanroomSample[]): ISOClassification {
-    this.samples = samples.slice(-168);
+    const parsed = CleanroomSampleBatchSchema.safeParse(samples);
+    if (!parsed.success) {
+      throw new Error(`Invalid sample batch: ${parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`);
+    }
+    this.samples = (parsed.data as CleanroomSample[]).slice(-168);
     this.lastClassification = this.classify();
     return this.lastClassification;
   }
@@ -151,10 +169,14 @@ export class ISOClassifier {
     zones: Record<string, CleanroomSample[]>,
     config?: Partial<ClassifierConfig>,
   ): Record<string, ISOClassification> {
+    const parsed = ZoneIngestionSchema.safeParse(zones);
+    if (!parsed.success) {
+      throw new Error(`Invalid zone data: ${parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`);
+    }
     const results: Record<string, ISOClassification> = {};
-    for (const [zone, samples] of Object.entries(zones)) {
+    for (const [zone, samples] of Object.entries(parsed.data)) {
       const classifier = new ISOClassifier(config);
-      results[zone] = classifier.loadSamples(samples);
+      results[zone] = classifier.loadSamples(samples as CleanroomSample[]);
     }
     return results;
   }
