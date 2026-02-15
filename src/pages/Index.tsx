@@ -103,7 +103,18 @@ const Index = () => {
       </main>
 
       {/* AI Assistant Panel */}
-      {showAi && <AiAssistantPanel onClose={() => setShowAi(false)} simulationContext={simContext} />}
+      {showAi && (
+        <AiAssistantPanel
+          onClose={() => setShowAi(false)}
+          simulationContext={simContext}
+          simulationData={activeSim ? {
+            residuals: activeSim.residuals.slice(-50),
+            meshConfig: activeSim.meshConfig as unknown as Record<string, unknown>,
+            solverConfig: activeSim.solverConfig as unknown as Record<string, unknown>,
+            fluidProperties: activeSim.fluidProperties as unknown as Record<string, unknown>,
+          } : undefined}
+        />
+      )}
     </div>
   );
 };
