@@ -17,6 +17,8 @@ import {
 } from "./types";
 import { InMemoryStore } from "./memory-store";
 import { StructuredLogger } from "../solver/logger";
+import { ComputeUsageService } from "../compute/compute-usage-service";
+import type { AgentNotification, UsageReport } from "../compute/compute-usage-service";
 
 // ─── Knowledge Patterns ─────────────────────────────────────────────────────
 
@@ -77,10 +79,39 @@ const KNOWLEDGE_BASE: KnowledgePattern[] = [
 export class CFDAIAgent {
   private readonly memory: MemoryStore;
   private readonly logger: StructuredLogger;
+  private computeService: ComputeUsageService | null = null;
+  private readonly notificationLog: AgentNotification[] = [];
 
   constructor(memory?: MemoryStore) {
     this.memory = memory ?? new InMemoryStore();
     this.logger = new StructuredLogger("CFDAIAgent");
+  }
+
+  // ── Compute Usage Integration ───────────────────────────────────────
+
+  attachComputeService(service: ComputeUsageService): void {
+    this.computeService = service;
+    service.onAgentNotification((notification) => {
+      this.handleComputeNotification(notification);
+    });
+    this.logger.info("ComputeUsageService attached to agent");
+  }
+
+  getComputeReport(): UsageReport | null {
+    return this.computeService?.generateReport() ?? null;
+  }
+
+  getNotificationLog(): AgentNotification[] {
+    return [...this.notificationLog];
+  }
+
+  private handleComputeNotification(notification: AgentNotification): void {
+    this.notificationLog.push(notification);
+    this.logger.warn("Compute usage notification", {
+      severity: notification.severity,
+      title: notification.title,
+      autoAction: notification.autoAction,
+    });
   }
 
   // ── 1. Intent Classification ────────────────────────────────────────────
