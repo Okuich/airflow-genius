@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.cleanroom-metrics]
 verify_jwt = false
+
+[functions.cleanroom-anomaly]
+verify_jwt = false

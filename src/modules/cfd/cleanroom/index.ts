@@ -21,4 +21,10 @@ export type {
   ValidatedZoneIngestion,
 } from "./schemas";
 export { cleanroomApi } from "./cleanroom-api-client";
-export type { CleanroomSampleRow } from "./cleanroom-api-client";
+export type {
+  CleanroomSampleRow,
+  StatAnomaly,
+  AIAlert,
+  AIAnalysis,
+  AnomalyDetectionResponse,
+} from "./cleanroom-api-client";

@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { ISOClassifier } from "@/modules/cfd/cleanroom";
 import type { CleanroomSample, ISOClassification } from "@/modules/cfd/cleanroom";
+import { AnomalyAlertPanel } from "@/components/cleanroom/AnomalyAlertPanel";
 
 // ── Mock Data ───────────────────────────────────────────────────────────────
 
@@ -207,6 +208,9 @@ export default function CleanroomMetrics() {
             />
             <KpiCard icon={Waves} label="Laminar Stability" value={(avgLaminar * 100).toFixed(1)} unit="%" />
           </div>
+
+          {/* AI Anomaly Alerts */}
+          <AnomalyAlertPanel />
 
           {/* Classification Reasoning */}
           <ClassificationPanel classification={classification} />
