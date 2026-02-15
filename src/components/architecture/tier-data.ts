@@ -1,13 +1,14 @@
 import {
   Globe, Shield, Network, Brain, Cpu, Database, HardDrive,
   Cloud, Workflow, BarChart3, Gauge, FileText, Lock,
-  ServerCog, MonitorCog,
+  ServerCog, MonitorCog, KeyRound, GitBranch, Box, ShieldCheck,
 } from "lucide-react";
 import type { Tier, RegionConfig } from "./types";
 
 export const REGIONS: RegionConfig[] = [
   { id: "primary", label: "Primary", location: "us-east-1", status: "active" },
   { id: "secondary", label: "Secondary", location: "eu-west-1", status: "syncing" },
+  { id: "govcloud", label: "GovCloud", location: "us-gov-west-1", status: "active", isolated: true },
 ];
 
 const PRIMARY_TIERS: Tier[] = [
@@ -263,7 +264,6 @@ const PRIMARY_TIERS: Tier[] = [
 const SECONDARY_TIERS: Tier[] = PRIMARY_TIERS.map((tier) => ({
   ...tier,
   nodes: tier.nodes.map((node) => {
-    // Secondary has reduced capacity and some services in standby
     const overrides: Record<string, Partial<typeof node>> = {
       lb: { metrics: [{ label: "Req/s", value: "1.2k" }, { label: "P99 Latency", value: "22ms" }, { label: "Mode", value: "Standby" }] },
       "gpu-pool": { status: "degraded" as const, metrics: [{ label: "GPUs Online", value: "4" }, { label: "Utilization", value: "12%" }, { label: "Mode", value: "Warm standby" }] },
@@ -274,6 +274,141 @@ const SECONDARY_TIERS: Tier[] = PRIMARY_TIERS.map((tier) => ({
   }),
 }));
 
-export function getTiersForRegion(region: "primary" | "secondary"): Tier[] {
+const GOVCLOUD_TIERS: Tier[] = [
+  {
+    id: "gov-isolation",
+    label: "Isolation Boundary (FedRAMP High)",
+    color: "data-rose",
+    nodes: [
+      {
+        id: "gov-boundary",
+        label: "GovCloud Isolation Boundary",
+        icon: ShieldCheck,
+        description: "Air-gapped environment with no shared SaaS components. FedRAMP High + IL5 compliant perimeter.",
+        status: "healthy",
+        metrics: [
+          { label: "Classification", value: "IL5" },
+          { label: "FedRAMP", value: "High" },
+          { label: "Shared Components", value: "0" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "gov-cicd",
+    label: "Dedicated CI/CD",
+    color: "data-violet",
+    nodes: [
+      {
+        id: "gov-pipeline",
+        label: "Dedicated CI/CD Pipeline",
+        icon: GitBranch,
+        description: "Isolated build and deploy pipeline with STIG-hardened runners, air-gapped artifact registry, and SBOM generation.",
+        status: "healthy",
+        metrics: [
+          { label: "Runners", value: "4" },
+          { label: "Last Deploy", value: "1h ago" },
+          { label: "SBOM", value: "Verified" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "gov-security",
+    label: "Dedicated Security",
+    color: "data-amber",
+    nodes: [
+      {
+        id: "gov-kms",
+        label: "Dedicated KMS",
+        icon: KeyRound,
+        description: "FIPS 140-2 Level 3 HSM-backed key management. Customer-managed keys with automated rotation and audit.",
+        status: "healthy",
+        metrics: [
+          { label: "FIPS Level", value: "L3" },
+          { label: "Key Rotation", value: "90d" },
+          { label: "Active Keys", value: "24" },
+        ],
+      },
+      {
+        id: "gov-monitoring",
+        label: "Dedicated Monitoring",
+        icon: MonitorCog,
+        description: "Isolated SIEM and observability stack. No telemetry leaves the GovCloud boundary.",
+        status: "healthy",
+        metrics: [
+          { label: "Log Retention", value: "7yr" },
+          { label: "Alerts", value: "62" },
+          { label: "Egress", value: "None" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "gov-compute",
+    label: "Dedicated Compute",
+    color: "data-cyan",
+    nodes: [
+      {
+        id: "gov-gpu",
+        label: "Dedicated GPU Pool",
+        icon: Cpu,
+        description: "Isolated GPU fleet on dedicated hosts. No multi-tenant hardware. ITAR-compliant workload scheduling.",
+        status: "healthy",
+        metrics: [
+          { label: "GPUs", value: "8" },
+          { label: "Dedicated Hosts", value: "Yes" },
+          { label: "Tenancy", value: "Single" },
+        ],
+      },
+      {
+        id: "gov-model-registry",
+        label: "Dedicated Model Registry",
+        icon: Box,
+        description: "Air-gapped ML model storage with provenance tracking, vulnerability scanning, and export controls.",
+        status: "healthy",
+        metrics: [
+          { label: "Models", value: "12" },
+          { label: "Scanned", value: "100%" },
+          { label: "Export Control", value: "ITAR" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "gov-data",
+    label: "Dedicated Data Layer",
+    color: "data-emerald",
+    nodes: [
+      {
+        id: "gov-db",
+        label: "Dedicated Database",
+        icon: Database,
+        description: "Isolated PostgreSQL with encryption at rest (AES-256-GCM), dedicated VPC, and no cross-region replication.",
+        status: "healthy",
+        metrics: [
+          { label: "Encryption", value: "AES-256" },
+          { label: "Cross-Region", value: "Disabled" },
+          { label: "Backup", value: "Hourly" },
+        ],
+      },
+      {
+        id: "gov-storage",
+        label: "Dedicated Object Storage",
+        icon: HardDrive,
+        description: "FIPS-encrypted object storage with bucket-level access policies and data residency enforcement.",
+        status: "healthy",
+        metrics: [
+          { label: "Residency", value: "US-only" },
+          { label: "Encryption", value: "FIPS" },
+          { label: "Size", value: "480 GB" },
+        ],
+      },
+    ],
+  },
+];
+
+export function getTiersForRegion(region: "primary" | "secondary" | "govcloud"): Tier[] {
+  if (region === "govcloud") return GOVCLOUD_TIERS;
   return region === "primary" ? PRIMARY_TIERS : SECONDARY_TIERS;
 }
