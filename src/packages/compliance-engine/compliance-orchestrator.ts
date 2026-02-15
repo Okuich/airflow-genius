@@ -24,12 +24,6 @@ export class ComplianceOrchestrator {
 
   /**
    * Run the full compliance pipeline.
-   *
-   * @param simulationId    Simulation identifier.
-   * @param organizationId  Org for audit doc attribution.
-   * @param domain          Airflow domain to scope rules.
-   * @param metrics         Key-value metric map from simulation results.
-   * @param contextKeywords Optional keywords to refine standard mapping.
    */
   run(params: {
     simulationId: string;
@@ -38,8 +32,8 @@ export class ComplianceOrchestrator {
     metrics: Record<string, number>;
     contextKeywords?: string[];
   }): CompliancePipelineResult {
-    // 1. Evaluate rules
-    const checkResults = this.rulesEngine.evaluate(params.metrics, params.domain);
+    // 1. Evaluate rules → findings
+    const findings = this.rulesEngine.evaluate(params.metrics, params.domain);
 
     // 2. Map standards
     const standardMappings = this.standardMapper.mapStandards(
@@ -48,20 +42,20 @@ export class ComplianceOrchestrator {
     );
 
     // 3. Score risk
-    const riskReport = this.riskScorer.computeRisk(checkResults);
+    const riskReport = this.riskScorer.computeRisk(findings);
 
     // 4. Generate audit document
     const auditDocument = this.auditGen.generate({
       simulationId: params.simulationId,
       organizationId: params.organizationId,
-      checkResults,
+      findings,
       standardMappings,
       riskReport,
     });
 
     return {
       simulationId: params.simulationId,
-      checkResults,
+      findings,
       standardMappings,
       riskReport,
       auditDocument,

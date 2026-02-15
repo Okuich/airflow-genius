@@ -1182,14 +1182,13 @@ export type AirflowComplianceDomain =
   | "data-center"
   | "general";
 
-export interface ComplianceCheckResult {
+export interface ComplianceFinding {
   ruleId: string;
-  rule: ComplianceRule;
-  actualValue: number;
-  passed: boolean;
-  severity: ComplianceSeverity;
-  detail: string;
-  remediation: string | null;
+  status: "Pass" | "Fail";
+  measuredValue: number;
+  threshold: number;
+  riskLevel: "Low" | "Medium" | "High" | "Critical";
+  recommendation: string;
 }
 
 export interface StandardMapping {
@@ -1243,7 +1242,7 @@ export interface AuditDocument {
 
 export interface CompliancePipelineResult {
   simulationId: string;
-  checkResults: ComplianceCheckResult[];
+  findings: ComplianceFinding[];
   standardMappings: StandardMapping[];
   riskReport: ComplianceRiskReport;
   auditDocument: AuditDocument;

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { ComplianceOrchestrator } from "@/packages/compliance-engine";
 
-describe("ComplianceOrchestrator", () => {
+describe("ComplianceOrchestrator (module integration)", () => {
   const orchestrator = new ComplianceOrchestrator();
 
   it("runs full pipeline for HVAC domain and returns compliant verdict when all metrics pass", () => {
@@ -18,8 +18,8 @@ describe("ComplianceOrchestrator", () => {
     });
 
     expect(result.simulationId).toBe("sim-001");
-    expect(result.checkResults.length).toBeGreaterThan(0);
-    expect(result.checkResults.every((c) => c.passed)).toBe(true);
+    expect(result.findings.length).toBeGreaterThan(0);
+    expect(result.findings.every((f) => f.status === "Pass")).toBe(true);
     expect(result.riskReport.riskLevel).toBe("low");
     expect(result.auditDocument.overallVerdict).toBe("compliant");
     expect(result.standardMappings.length).toBeGreaterThan(0);
@@ -38,7 +38,7 @@ describe("ComplianceOrchestrator", () => {
       },
     });
 
-    const failures = result.checkResults.filter((c) => !c.passed);
+    const failures = result.findings.filter((f) => f.status === "Fail");
     expect(failures.length).toBeGreaterThan(0);
     expect(result.auditDocument.overallVerdict).toBe("non_compliant");
     expect(result.auditDocument.findings.length).toBeGreaterThan(0);
@@ -56,7 +56,7 @@ describe("ComplianceOrchestrator", () => {
       },
     });
 
-    expect(result.checkResults.some((c) => !c.passed)).toBe(true);
+    expect(result.findings.some((f) => f.status === "Fail")).toBe(true);
     expect(result.auditDocument.overallVerdict).not.toBe("compliant");
   });
 
@@ -69,21 +69,21 @@ describe("ComplianceOrchestrator", () => {
         outdoorAirRate: 5.0,
         exhaustAirflow: 1.0,
         operativeTemperature: 23.0,
-        maxAirSpeed: 1.0, // exceeds 0.8 — Low severity
+        maxAirSpeed: 1.0,
       },
     });
 
     expect(result.auditDocument.overallVerdict).toBe("conditionally_compliant");
   });
 
-  it("includes remediation in findings for critical issues", () => {
+  it("includes recommendation in findings for critical issues", () => {
     const result = orchestrator.run({
       simulationId: "sim-005",
       organizationId: "org-001",
       domain: "cleanroom",
       metrics: {
-        airChangeRate: 100, // below 240 requirement
-        laminarCoverage: 0.6, // below 0.80
+        airChangeRate: 100,
+        laminarCoverage: 0.6,
       },
     });
 

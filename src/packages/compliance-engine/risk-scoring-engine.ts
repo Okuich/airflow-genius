@@ -1,16 +1,17 @@
 // ─── Risk Scoring Engine ────────────────────────────────────────────────────
-// Converts compliance check results into a weighted risk report.
+// Converts compliance findings into a weighted risk report.
 // ──────────────────────────────────────────────────────────────────────────
 
 import type {
-  ComplianceCheckResult,
+  ComplianceFinding,
   ComplianceRiskReport,
   ComplianceSeverity,
+  ComplianceRule,
   RiskScore,
 } from "@/packages/types";
+import { RULE_LIBRARY } from "@/packages/compliance-knowledge";
 
-const SEVERITY_WEIGHT: Record<ComplianceSeverity, number> = {
-  pass: 0,
+const RISK_WEIGHT: Record<ComplianceFinding["riskLevel"], number> = {
   Low: 1,
   Medium: 3,
   High: 4,
@@ -27,26 +28,31 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export class RiskScoringEngine {
   /**
-   * Compute a comprehensive risk report from compliance check results.
+   * Compute a comprehensive risk report from compliance findings.
    */
-  computeRisk(results: ComplianceCheckResult[]): ComplianceRiskReport {
-    const categories = this.categoriseResults(results);
+  computeRisk(findings: ComplianceFinding[]): ComplianceRiskReport {
+    const categories = this.categoriseFindings(findings);
     const categoryScores: RiskScore[] = [];
     let totalScore = 0;
     let totalMax = 0;
 
-    for (const [category, checks] of Object.entries(categories)) {
-      const score = checks.reduce(
-        (sum, c) => sum + (c.passed ? 0 : SEVERITY_WEIGHT[c.severity]),
+    for (const [category, items] of Object.entries(categories)) {
+      const score = items.reduce(
+        (sum, f) => sum + (f.status === "Pass" ? 0 : RISK_WEIGHT[f.riskLevel]),
         0
       );
-      const maxScore = checks.length * SEVERITY_WEIGHT.Critical;
+      const maxScore = items.length * RISK_WEIGHT.Critical;
       totalScore += score;
       totalMax += maxScore;
 
-      const factors = checks
-        .filter((c) => !c.passed)
-        .map((c) => `${c.rule.authority} ${c.rule.standardCode}: ${c.detail}`);
+      const factors = items
+        .filter((f) => f.status === "Fail")
+        .map((f) => {
+          const rule = this.findRule(f.ruleId);
+          return rule
+            ? `${rule.authority} ${rule.standardCode}: ${rule.description}`
+            : f.ruleId;
+        });
 
       categoryScores.push({
         category: CATEGORY_LABELS[category] ?? category,
@@ -57,11 +63,16 @@ export class RiskScoringEngine {
       });
     }
 
-    const topRisks = results
-      .filter((r) => !r.passed)
-      .sort((a, b) => SEVERITY_WEIGHT[b.severity] - SEVERITY_WEIGHT[a.severity])
+    const topRisks = findings
+      .filter((f) => f.status === "Fail")
+      .sort((a, b) => RISK_WEIGHT[b.riskLevel] - RISK_WEIGHT[a.riskLevel])
       .slice(0, 5)
-      .map((r) => `[${r.severity.toUpperCase()}] ${r.rule.description} (${r.rule.authority} ${r.rule.standardCode})`);
+      .map((f) => {
+        const rule = this.findRule(f.ruleId);
+        return rule
+          ? `[${f.riskLevel.toUpperCase()}] ${rule.description} (${rule.authority} ${rule.standardCode})`
+          : `[${f.riskLevel.toUpperCase()}] ${f.ruleId}`;
+      });
 
     return {
       overallRiskScore: totalScore,
@@ -72,10 +83,14 @@ export class RiskScoringEngine {
     };
   }
 
-  private categoriseResults(
-    results: ComplianceCheckResult[]
-  ): Record<string, ComplianceCheckResult[]> {
-    const categories: Record<string, ComplianceCheckResult[]> = {};
+  private findRule(ruleId: string): ComplianceRule | undefined {
+    return RULE_LIBRARY.find((r) => r.id === ruleId);
+  }
+
+  private categoriseFindings(
+    findings: ComplianceFinding[]
+  ): Record<string, ComplianceFinding[]> {
+    const categories: Record<string, ComplianceFinding[]> = {};
 
     const metricCategoryMap: Record<string, string> = {
       outdoorAirRate: "ventilation",
@@ -94,10 +109,11 @@ export class RiskScoringEngine {
       estimatedPUE: "energy",
     };
 
-    for (const result of results) {
-      const cat = metricCategoryMap[result.rule.metric] ?? "structural";
+    for (const finding of findings) {
+      const rule = this.findRule(finding.ruleId);
+      const cat = rule ? (metricCategoryMap[rule.metric] ?? "structural") : "structural";
       if (!categories[cat]) categories[cat] = [];
-      categories[cat].push(result);
+      categories[cat].push(finding);
     }
 
     return categories;
