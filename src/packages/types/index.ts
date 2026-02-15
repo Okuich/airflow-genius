@@ -239,6 +239,75 @@ export interface CleanroomMetrics {
   laminarStabilityScore: number;
 }
 
+// ── Cleanroom / Particle Transport ──────────────────────────────────────────
+
+export interface ParticleTransportModel {
+  /** Enable Lagrangian particle tracking. */
+  enabled: boolean;
+  /** Particle diameter in metres. */
+  particleDiameter: number;
+  /** Particle density in kg/m³. */
+  particleDensity: number;
+  /** Number of tracked parcels. */
+  parcelCount: number;
+  /** Injection surface IDs (subset of boundary IDs). */
+  injectionSurfaceIds: string[];
+  /** Enable gravitational settling. */
+  gravitySedimentation: boolean;
+  /** Enable Brownian diffusion for sub-micron particles. */
+  brownianDiffusion: boolean;
+  /** Particle-wall interaction mode. */
+  wallInteraction: "stick" | "reflect" | "escape";
+  /** Contaminant half-life in seconds (null = no decay). */
+  contaminantHalfLife: number | null;
+}
+
+export interface LaminarFlowValidationMode {
+  /** Target unidirectional flow axis. */
+  primaryAxis: "x" | "y" | "z";
+  /** Maximum allowable velocity deviation angle (degrees). */
+  maxDeviationAngle: number;
+  /** Minimum laminar coverage fraction to pass (0–1). */
+  coverageThreshold: number;
+  /** Sampling plane count along primary axis. */
+  samplingPlanes: number;
+  /** Whether to auto-generate ISO 14644 compliance report. */
+  generateISOReport: boolean;
+}
+
+export interface CleanroomSimulationConfig extends SimulationConfig {
+  particleTransport: ParticleTransportModel;
+  laminarValidation?: LaminarFlowValidationMode;
+  /** Target ISO cleanliness class (e.g. "ISO 5", "ISO 7"). */
+  targetISOClass: string;
+  /** Room volume in m³ (used for air-change-rate calculation). */
+  roomVolume: number;
+  /** HEPA filter face velocity in m/s. */
+  filterFaceVelocity: number;
+}
+
+export interface ParticleDispersionMetrics {
+  /** Mean particle residence time in seconds. */
+  meanResidenceTime: number;
+  /** Fraction of particles removed via outlets (0–1). */
+  removalEfficiency: number;
+  /** Max particle concentration (particles/m³). */
+  peakConcentration: number;
+  /** Contamination recovery time to reach 99% removal (seconds). */
+  recoveryTime99Pct: number;
+  /** Spatial uniformity index of particle distribution (0–1, 1 = uniform). */
+  uniformityIndex: number;
+}
+
+export interface ContaminantDecayResult {
+  /** Time constant τ (seconds) for exponential decay fit. */
+  decayTimeConstant: number;
+  /** Goodness of fit R² for exponential model. */
+  fitR2: number;
+  /** Concentration at each sampled timestep. */
+  concentrationTimeSeries: { time: number; concentration: number }[];
+}
+
 export interface HumanReadableSummary {
   keyFindings: string[];
   pressureLossEstimate: number;
