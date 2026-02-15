@@ -11,5 +11,9 @@ export { ModelRegistry } from "./model-registry";
 export { RecommendationEngine } from "./recommendation-engine";
 export { SurrogatePipeline } from "./surrogate-pipeline";
 
+// Surrogate model abstraction layer
+export type { SurrogateModel, Prediction, TrainingData } from "./surrogate-model";
+export { ConvergencePredictor, EfficiencyPredictor, TurbulenceRecommendationModel } from "./surrogate-model";
+
 // Re-export the generic event bus for convenience
 export { PlatformEventBus, getEventBus, InMemoryTransport } from "@/packages/events";
