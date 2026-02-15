@@ -5,6 +5,7 @@ import { RegulationSelector } from "@/components/compliance/RegulationSelector";
 import { RiskHeatmap } from "@/components/compliance/RiskHeatmap";
 import { AuditReportGenerator } from "@/components/compliance/AuditReportGenerator";
 import { ViolationExplorer } from "@/components/compliance/ViolationExplorer";
+import { AIComplianceAdvisor } from "@/components/compliance/AIComplianceAdvisor";
 import type { AirflowComplianceDomain } from "@/packages/types";
 
 /** Sample metric sets per domain for demonstration. */
@@ -40,7 +41,10 @@ const Compliance = () => {
             <ViolationExplorer domain={domain} metrics={metrics} />
           </div>
 
-          <AuditReportGenerator domain={domain} metrics={metrics} />
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <AuditReportGenerator domain={domain} metrics={metrics} />
+            <AIComplianceAdvisor domain={domain} metrics={metrics} />
+          </div>
         </div>
       </main>
     </div>
