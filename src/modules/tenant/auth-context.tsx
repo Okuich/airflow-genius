@@ -42,38 +42,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // ── Fetch profile & orgs ─────────────────────────────────────────────
   const loadUserData = useCallback(async (userId: string) => {
-    const [profileRes, orgsRes] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle(),
-      supabase
-        .from("organization_members")
-        .select("organization_id, role, organizations(*)")
-        .eq("user_id", userId),
-    ]);
+    try {
+      const [profileRes, orgsRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle(),
+        supabase
+          .from("organization_members")
+          .select("organization_id, role, organizations(*)")
+          .eq("user_id", userId),
+      ]);
 
-    if (profileRes.data) setProfile(profileRes.data as unknown as Profile);
+      if (profileRes.data) setProfile(profileRes.data as unknown as Profile);
 
-    if (orgsRes.data && orgsRes.data.length > 0) {
-      const orgs = orgsRes.data.map((m: any) => m.organizations as Organization);
-      setOrganizations(orgs);
+      if (orgsRes.data && orgsRes.data.length > 0) {
+        const orgs = orgsRes.data.map((m: any) => m.organizations as Organization);
+        setOrganizations(orgs);
 
-      // Restore last org from localStorage or pick first
-      const lastOrgId = localStorage.getItem("ff_current_org");
-      const match = orgs.find((o) => o.id === lastOrgId) ?? orgs[0];
-      setCurrentOrg(match);
+        const lastOrgId = localStorage.getItem("ff_current_org");
+        const match = orgs.find((o) => o.id === lastOrgId) ?? orgs[0];
+        setCurrentOrg(match);
 
-      const memberRow = orgsRes.data.find((m: any) => m.organization_id === match.id);
-      setCurrentRole((memberRow?.role as AppRole) ?? null);
+        const memberRow = orgsRes.data.find((m: any) => m.organization_id === match.id);
+        setCurrentRole((memberRow?.role as AppRole) ?? null);
+      }
+    } catch (err) {
+      console.error("Failed to load user data:", err);
     }
   }, []);
 
   // ── Auth state listener ──────────────────────────────────────────────
   useEffect(() => {
+    let mounted = true;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, sess) => {
+        if (!mounted) return;
         setSession(sess);
         setUser(sess?.user ?? null);
         if (sess?.user) {
@@ -84,21 +90,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setCurrentOrg(null);
           setCurrentRole(null);
         }
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session: sess } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: sess } }) => {
+      if (!mounted) return;
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
-        loadUserData(sess.user.id).then(() => setLoading(false));
-      } else {
-        setLoading(false);
+        await loadUserData(sess.user.id);
       }
+      if (mounted) setLoading(false);
+    }).catch(() => {
+      if (mounted) setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Safety timeout — never stay loading forever
+    const timeout = setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 5000);
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, [loadUserData]);
 
   // ── Switch org ────────────────────────────────────────────────────────
