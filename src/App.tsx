@@ -15,6 +15,7 @@ import SolverStatus from "./pages/SolverStatus";
 import CleanroomMetrics from "./pages/CleanroomMetrics";
 import DataCenterHeatMap from "./pages/DataCenterHeatMap";
 import Auth from "./pages/Auth";
+import Architecture from "./pages/Architecture";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const AppRoutes = forwardRef<HTMLDivElement>((_props, _ref) => (
     <Route path="/solver-status" element={<ProtectedRoute><SolverStatus /></ProtectedRoute>} />
     <Route path="/cleanroom" element={<ProtectedRoute><CleanroomMetrics /></ProtectedRoute>} />
     <Route path="/datacenter" element={<ProtectedRoute><DataCenterHeatMap /></ProtectedRoute>} />
+    <Route path="/architecture" element={<ProtectedRoute><Architecture /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 ));
