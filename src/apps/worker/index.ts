@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export { WorkerService } from "./worker-service";
+export { PipelineReactor } from "./pipeline-reactor";
 export type {
   WorkerJobResult,
   WorkerJobStatus,
@@ -10,3 +11,4 @@ export type {
   WorkerInvokeOptions,
   TrainingJobSummary,
 } from "./worker-service";
+export type { PipelineReactorConfig } from "./pipeline-reactor";
