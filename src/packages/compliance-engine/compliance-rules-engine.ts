@@ -5,7 +5,7 @@
 
 import type {
   ComplianceRule,
-  ComplianceCheckResult,
+  ComplianceFinding,
   AirflowComplianceDomain,
 } from "@/packages/types";
 import { RULE_LIBRARY, RULE_DOMAIN_MAP, resolveRemediation } from "@/packages/compliance-knowledge";
@@ -36,9 +36,9 @@ export class ComplianceRulesEngine {
   evaluate(
     metrics: Record<string, number>,
     domain: AirflowComplianceDomain
-  ): ComplianceCheckResult[] {
+  ): ComplianceFinding[] {
     const applicableRules = this.getRules(domain);
-    const results: ComplianceCheckResult[] = [];
+    const results: ComplianceFinding[] = [];
 
     for (const rule of applicableRules) {
       const value = metrics[rule.metric];
@@ -47,12 +47,13 @@ export class ComplianceRulesEngine {
       const passed = this.checkRule(rule, value);
       results.push({
         ruleId: rule.id,
-        rule,
-        actualValue: value,
-        passed,
-        severity: passed ? "pass" : rule.severity,
-        detail: this.formatDetail(rule, value, passed),
-        remediation: passed ? null : this.buildRemediation(rule, value),
+        status: passed ? "Pass" : "Fail",
+        measuredValue: value,
+        threshold: rule.threshold,
+        riskLevel: passed ? "Low" : rule.severity,
+        recommendation: passed
+          ? "No action required."
+          : this.buildRecommendation(rule, value),
       });
     }
 
@@ -69,12 +70,7 @@ export class ComplianceRulesEngine {
     }
   }
 
-  private formatDetail(rule: ComplianceRule, value: number, passed: boolean): string {
-    const status = passed ? "PASS" : rule.severity.toUpperCase();
-    return `[${status}] ${rule.description}: actual ${value.toFixed(2)}, required ${rule.operator} ${rule.threshold} (${rule.authority} ${rule.standardCode})`;
-  }
-
-  private buildRemediation(rule: ComplianceRule, value: number): string {
+  private buildRecommendation(rule: ComplianceRule, value: number): string {
     const gap = Math.abs(value - rule.threshold);
     const pct = rule.threshold > 0 ? ((gap / rule.threshold) * 100).toFixed(0) : "N/A";
 

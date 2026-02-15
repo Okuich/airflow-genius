@@ -1,30 +1,32 @@
 // ─── Audit Documentation Generator ─────────────────────────────────────────
-// Produces structured audit documents from compliance pipeline outputs.
+// Produces structured audit documents from compliance findings.
 // ──────────────────────────────────────────────────────────────────────────
 
 import type {
-  ComplianceCheckResult,
+  ComplianceFinding,
   ComplianceRiskReport,
   StandardMapping,
   AuditDocument,
   AuditFinding,
   ComplianceStandard,
+  ComplianceRule,
 } from "@/packages/types";
+import { RULE_LIBRARY } from "@/packages/compliance-knowledge";
 
 export class AuditDocumentGenerator {
   /**
-   * Generate a full audit document from compliance results.
+   * Generate a full audit document from compliance findings.
    */
   generate(params: {
     simulationId: string;
     organizationId: string;
-    checkResults: ComplianceCheckResult[];
+    findings: ComplianceFinding[];
     standardMappings: StandardMapping[];
     riskReport: ComplianceRiskReport;
   }): AuditDocument {
-    const findings = this.extractFindings(params.checkResults);
+    const auditFindings = this.extractFindings(params.findings);
     const standards = this.collectStandards(params.standardMappings);
-    const verdict = this.determineVerdict(findings, params.riskReport);
+    const verdict = this.determineVerdict(auditFindings, params.riskReport);
 
     return {
       id: `audit-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -33,28 +35,35 @@ export class AuditDocumentGenerator {
       simulationId: params.simulationId,
       organizationId: params.organizationId,
       standards,
-      findings,
+      findings: auditFindings,
       riskReport: params.riskReport,
-      summary: this.generateSummary(findings, params.riskReport, verdict),
+      summary: this.generateSummary(auditFindings, params.riskReport, verdict),
       signOffRequired: verdict !== "compliant",
       overallVerdict: verdict,
     };
   }
 
-  private extractFindings(results: ComplianceCheckResult[]): AuditFinding[] {
-    return results
-      .filter((r) => !r.passed)
-      .map((r, i) => ({
-        id: `finding-${i + 1}`,
-        authority: r.rule.authority,
-        standardCode: r.rule.standardCode,
-        description: r.rule.description,
-        severity: r.severity,
-        actualValue: `${r.actualValue.toFixed(2)}`,
-        requiredValue: `${r.rule.operator} ${r.rule.threshold}`,
-        remediation: r.remediation ?? "Review and correct to meet regulatory requirements.",
-        deadline: r.severity === "Critical" ? "immediate" : r.severity === "High" ? "7 days" : r.severity === "Medium" ? "30 days" : null,
-      }));
+  private findRule(ruleId: string): ComplianceRule | undefined {
+    return RULE_LIBRARY.find((r) => r.id === ruleId);
+  }
+
+  private extractFindings(findings: ComplianceFinding[]): AuditFinding[] {
+    return findings
+      .filter((f) => f.status === "Fail")
+      .map((f, i) => {
+        const rule = this.findRule(f.ruleId);
+        return {
+          id: `finding-${i + 1}`,
+          authority: rule?.authority ?? "OSHA",
+          standardCode: rule?.standardCode ?? f.ruleId,
+          description: rule?.description ?? f.ruleId,
+          severity: f.riskLevel,
+          actualValue: `${f.measuredValue.toFixed(2)}`,
+          requiredValue: rule ? `${rule.operator} ${f.threshold}` : `${f.threshold}`,
+          remediation: f.recommendation,
+          deadline: f.riskLevel === "Critical" ? "immediate" : f.riskLevel === "High" ? "7 days" : f.riskLevel === "Medium" ? "30 days" : null,
+        };
+      });
   }
 
   private collectStandards(mappings: StandardMapping[]): ComplianceStandard[] {

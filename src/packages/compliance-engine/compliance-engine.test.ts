@@ -17,19 +17,27 @@ describe("compliance-engine", () => {
       expect(hvac.length).not.toBe(cleanroom.length);
     });
 
-    it("evaluates passing metrics correctly", () => {
-      const results = engine.evaluate({ outdoorAirRate: 5.0 }, "hvac");
-      const oar = results.find((r) => r.ruleId === "ASHRAE-62.1-6.2");
-      expect(oar?.passed).toBe(true);
-      expect(oar?.severity).toBe("pass");
+    it("evaluates passing metrics as Pass with Low riskLevel", () => {
+      const findings = engine.evaluate({ outdoorAirRate: 5.0 }, "hvac");
+      const oar = findings.find((f) => f.ruleId === "ASHRAE-62.1-6.2");
+      expect(oar?.status).toBe("Pass");
+      expect(oar?.riskLevel).toBe("Low");
     });
 
-    it("evaluates failing metrics with remediation", () => {
-      const results = engine.evaluate({ captureVelocity: 0.2 }, "exhaust");
-      const cv = results.find((r) => r.ruleId === "ACGIH-VS-10");
-      expect(cv?.passed).toBe(false);
-      expect(cv?.severity).toBe("Critical");
-      expect(cv?.remediation).toBeTruthy();
+    it("evaluates failing metrics as Fail with recommendation", () => {
+      const findings = engine.evaluate({ captureVelocity: 0.2 }, "exhaust");
+      const cv = findings.find((f) => f.ruleId === "ACGIH-VS-10");
+      expect(cv?.status).toBe("Fail");
+      expect(cv?.riskLevel).toBe("Critical");
+      expect(cv?.recommendation).toBeTruthy();
+      expect(cv?.recommendation).not.toBe("No action required.");
+    });
+
+    it("includes threshold and measuredValue on every finding", () => {
+      const findings = engine.evaluate({ outdoorAirRate: 1.0 }, "hvac");
+      const f = findings.find((r) => r.ruleId === "ASHRAE-62.1-6.2");
+      expect(f?.measuredValue).toBe(1.0);
+      expect(f?.threshold).toBe(2.5);
     });
   });
 
@@ -54,16 +62,16 @@ describe("compliance-engine", () => {
     const scorer = new RiskScoringEngine();
     const engine = new ComplianceRulesEngine();
 
-    it("returns low risk for all-passing results", () => {
-      const results = engine.evaluate({ outdoorAirRate: 5.0, operativeTemperature: 23 }, "hvac");
-      const report = scorer.computeRisk(results);
+    it("returns low risk for all-passing findings", () => {
+      const findings = engine.evaluate({ outdoorAirRate: 5.0, operativeTemperature: 23 }, "hvac");
+      const report = scorer.computeRisk(findings);
       expect(report.riskLevel).toBe("low");
       expect(report.overallRiskScore).toBe(0);
     });
 
     it("returns elevated risk for critical failures", () => {
-      const results = engine.evaluate({ captureVelocity: 0.1, peakConcentration: 80 }, "exhaust");
-      const report = scorer.computeRisk(results);
+      const findings = engine.evaluate({ captureVelocity: 0.1, peakConcentration: 80 }, "exhaust");
+      const report = scorer.computeRisk(findings);
       expect(report.overallRiskScore).toBeGreaterThan(0);
       expect(report.topRisks.length).toBeGreaterThan(0);
     });
@@ -75,14 +83,14 @@ describe("compliance-engine", () => {
     const mapper = new StandardMappingEngine();
     const scorer = new RiskScoringEngine();
 
-    it("generates compliant audit doc for passing results", () => {
-      const checks = engine.evaluate({ outdoorAirRate: 5.0 }, "hvac");
+    it("generates compliant audit doc for passing findings", () => {
+      const findings = engine.evaluate({ outdoorAirRate: 5.0 }, "hvac");
       const mappings = mapper.mapStandards("hvac");
-      const risk = scorer.computeRisk(checks);
+      const risk = scorer.computeRisk(findings);
       const doc = gen.generate({
         simulationId: "sim-t1",
         organizationId: "org-t1",
-        checkResults: checks,
+        findings,
         standardMappings: mappings,
         riskReport: risk,
       });
@@ -101,7 +109,7 @@ describe("compliance-engine", () => {
         domain: "hvac",
         metrics: { outdoorAirRate: 5.0, exhaustAirflow: 1.0, operativeTemperature: 23.0, maxAirSpeed: 0.3 },
       });
-      expect(result.checkResults.every((c) => c.passed)).toBe(true);
+      expect(result.findings.every((f) => f.status === "Pass")).toBe(true);
       expect(result.auditDocument.overallVerdict).toBe("compliant");
     });
 
