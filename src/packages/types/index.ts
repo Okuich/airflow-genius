@@ -482,6 +482,16 @@ export interface SurrogatePrediction {
   modelVersion: number;
 }
 
+// ── Platform Events ─────────────────────────────────────────────────────────
+
+export interface SimulationSubmittedEvent {
+  simulationId: string;
+  organizationId: string;
+  userId: string;
+  config: SimulationConfig;
+  timestamp: string;
+}
+
 export interface SimulationCompletedEvent {
   simulationId: string;
   organizationId: string;
@@ -498,9 +508,79 @@ export interface SimulationCompletedEvent {
   timestamp: string;
 }
 
+export interface SimulationFailedEvent {
+  simulationId: string;
+  organizationId: string;
+  userId: string;
+  error: SolverError;
+  lastIteration: number;
+  timestamp: string;
+}
+
+export interface DiagnosticGeneratedEvent {
+  simulationId: string;
+  organizationId: string;
+  diagnosticType: "convergence" | "mesh_quality" | "boundary_check";
+  severity: "info" | "warning" | "critical";
+  message: string;
+  recommendations: string[];
+  timestamp: string;
+}
+
+export interface ModelUpdatedEvent {
+  organizationId: string;
+  modelType: SurrogateModelType;
+  version: number;
+  metrics: SurrogateModelMetrics;
+  previousVersion: number | null;
+  timestamp: string;
+}
+
+export interface BillingThresholdExceededEvent {
+  organizationId: string;
+  userId: string;
+  resource: "cpuHours" | "gpuHours" | "memoryGBHours" | "simulationDurationHours";
+  currentValue: number;
+  limit: number;
+  percentUsed: number;
+  tier: UserTier;
+  timestamp: string;
+}
+
+/** Map of all platform event names to their payload types. */
+export interface PlatformEventMap {
+  "simulation.submitted": SimulationSubmittedEvent;
+  "simulation.completed": SimulationCompletedEvent;
+  "simulation.failed": SimulationFailedEvent;
+  "diagnostic.generated": DiagnosticGeneratedEvent;
+  "model.updated": ModelUpdatedEvent;
+  "billing.threshold_exceeded": BillingThresholdExceededEvent;
+}
+
+/** Union of all event names. */
+export type PlatformEventName = keyof PlatformEventMap;
+
+/** Generic envelope wrapping any platform event. */
+export interface Event<T extends PlatformEventName = PlatformEventName> {
+  id: string;
+  name: T;
+  payload: PlatformEventMap[T];
+  timestamp: string;
+  source: string;
+}
+
 export interface SurrogateRecommendation {
   type: "mesh" | "solver" | "boundary" | "general";
   message: string;
   confidence: number;
   predictedImprovement: string;
+}
+
+/** Transport abstraction — implement for Kafka, Redis, etc. */
+export interface EventTransport {
+  publish<T extends PlatformEventName>(event: Event<T>): Promise<void>;
+  subscribe<T extends PlatformEventName>(
+    name: T,
+    handler: (event: Event<T>) => void | Promise<void>
+  ): () => void;
 }

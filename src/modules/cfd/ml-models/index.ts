@@ -10,3 +10,6 @@ export { MLTrainingJob } from "./ml-training-job";
 export { ModelRegistry } from "./model-registry";
 export { RecommendationEngine } from "./recommendation-engine";
 export { SurrogatePipeline } from "./surrogate-pipeline";
+
+// Re-export the generic event bus for convenience
+export { PlatformEventBus, getEventBus, InMemoryTransport } from "@/packages/events";
