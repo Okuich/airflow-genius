@@ -26,3 +26,11 @@ export type {
   PipelineStage as ExecutionStage,
   StageResult as ExecutionStageResult,
 } from "./simulation-execution-pipeline";
+export { MeshRefinementStudy } from "./mesh-refinement-study";
+export type {
+  MeshLevel,
+  RefinementStudyConfig,
+  MeshLevelResult,
+  RichardsonExtrapolation,
+  RefinementStudyResult,
+} from "./mesh-refinement-study";

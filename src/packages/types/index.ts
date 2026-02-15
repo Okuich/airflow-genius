@@ -593,6 +593,15 @@ export interface TrainingJobLaunchedEvent {
   timestamp: string;
 }
 
+export interface RefinementStudyCompletedEvent {
+  simulationId: string;
+  organizationId: string;
+  userId: string;
+  gridIndependent: boolean;
+  gciFine: number | null;
+  timestamp: string;
+}
+
 /** Map of all platform event names to their payload types. */
 export interface PlatformEventMap {
   "simulation.submitted": SimulationSubmittedEvent;
@@ -604,6 +613,7 @@ export interface PlatformEventMap {
   "feature.created": FeatureVectorCreatedEvent;
   "training.threshold_reached": TrainingThresholdReachedEvent;
   "training.job_launched": TrainingJobLaunchedEvent;
+  "refinement_study.completed": RefinementStudyCompletedEvent;
 }
 
 /** Union of all event names. */
