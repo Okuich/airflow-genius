@@ -314,6 +314,7 @@ export class FeatureExtractor {
       case FlowType.ContaminantDecay: return 4;
       case FlowType.ExhaustVentilation: return 5;
       case FlowType.BuoyancyDriven: return 6;
+      case FlowType.AgricultureVentilation: return 7;
       default: return 0;
     }
   }

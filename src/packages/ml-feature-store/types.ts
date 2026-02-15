@@ -14,6 +14,7 @@ export type GeometryCluster =
   | "heat-exchanger"
   | "cleanroom"
   | "exhaust-system"
+  | "agriculture-ventilation"
   | "generic";
 
 // ── Feature Store Entries ───────────────────────────────────────────────────
