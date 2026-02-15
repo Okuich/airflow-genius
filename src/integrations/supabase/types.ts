@@ -55,6 +55,75 @@ export type Database = {
           },
         ]
       }
+      compliance_knowledge_sync: {
+        Row: {
+          entry_id: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          payload: Json
+          source: string
+          sync_type: string
+          synced_at: string
+          version: number
+        }
+        Insert: {
+          entry_id: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          payload?: Json
+          source?: string
+          sync_type: string
+          synced_at?: string
+          version?: number
+        }
+        Update: {
+          entry_id?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          payload?: Json
+          source?: string
+          sync_type?: string
+          synced_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      compliance_sync_log: {
+        Row: {
+          ai_model: string | null
+          completed_at: string | null
+          error_message: string | null
+          id: string
+          rules_synced: number
+          standards_synced: number
+          started_at: string
+          status: string
+        }
+        Insert: {
+          ai_model?: string | null
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          rules_synced?: number
+          standards_synced?: number
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          ai_model?: string | null
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          rules_synced?: number
+          standards_synced?: number
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       compute_usage: {
         Row: {
           cost_usd: number

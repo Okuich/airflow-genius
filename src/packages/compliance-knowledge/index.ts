@@ -19,6 +19,8 @@ export { STANDARD_CATALOG } from "./standard-catalog";
 export { RULE_LIBRARY, RULE_DOMAIN_MAP } from "./rule-library";
 export { METRIC_STANDARD_LINKS, getStandardsForMetric, getMetricsForStandard } from "./metric-links";
 export { REMEDIATION_TEMPLATES, resolveRemediation } from "./remediation-templates";
+export { ComplianceKnowledgeSyncService } from "./sync-service";
+export type { SyncedStandard, SyncedRule, SyncLogEntry, MergedKnowledgeBase } from "./sync-service";
 
 // ── Convenience: full bundle ───────────────────────────────────────────────
 
