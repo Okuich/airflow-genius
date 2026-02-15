@@ -16,4 +16,12 @@ export {
   type OutputFile,
   type PerformanceMetrics,
 } from "./types";
-
+export { SimulationExecutionPipeline } from "./simulation-execution-pipeline";
+export type {
+  PipelineConfig as ExecutionPipelineConfig,
+  PipelineResult as ExecutionPipelineResult,
+  GPUAllocation,
+  AdaptiveTimeStep,
+  PipelineStage as ExecutionStage,
+  StageResult as ExecutionStageResult,
+} from "./simulation-execution-pipeline";
