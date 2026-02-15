@@ -62,18 +62,28 @@ describe("compliance-engine", () => {
     const scorer = new RiskScoringEngine();
     const engine = new ComplianceRulesEngine();
 
-    it("returns low risk for all-passing findings", () => {
+    it("returns zero risk for all-passing findings", () => {
       const findings = engine.evaluate({ outdoorAirRate: 5.0, operativeTemperature: 23 }, "hvac");
       const report = scorer.computeRisk(findings);
-      expect(report.riskLevel).toBe("low");
-      expect(report.overallRiskScore).toBe(0);
+      expect(report.overallScore).toBe(0);
+      expect(report.highRiskCount).toBe(0);
+      expect(report.projectedRemediationCost).toBe(0);
+      expect(report.complianceProbability).toBeGreaterThan(0);
     });
 
     it("returns elevated risk for critical failures", () => {
       const findings = engine.evaluate({ captureVelocity: 0.1, peakConcentration: 80 }, "exhaust");
       const report = scorer.computeRisk(findings);
-      expect(report.overallRiskScore).toBeGreaterThan(0);
-      expect(report.topRisks.length).toBeGreaterThan(0);
+      expect(report.overallScore).toBeGreaterThan(0);
+      expect(report.highRiskCount).toBeGreaterThan(0);
+      expect(report.projectedRemediationCost).toBeGreaterThan(0);
+      expect(report.complianceProbability).toBeLessThan(1);
+    });
+
+    it("returns full compliance probability for empty findings", () => {
+      const report = scorer.computeRisk([]);
+      expect(report.overallScore).toBe(0);
+      expect(report.complianceProbability).toBe(1);
     });
   });
 
@@ -110,6 +120,7 @@ describe("compliance-engine", () => {
         metrics: { outdoorAirRate: 5.0, exhaustAirflow: 1.0, operativeTemperature: 23.0, maxAirSpeed: 0.3 },
       });
       expect(result.findings.every((f) => f.status === "Pass")).toBe(true);
+      expect(result.riskReport.overallScore).toBe(0);
       expect(result.auditDocument.overallVerdict).toBe("compliant");
     });
 
@@ -121,6 +132,7 @@ describe("compliance-engine", () => {
         metrics: { captureVelocity: 0.2, peakConcentration: 80 },
       });
       expect(result.auditDocument.overallVerdict).toBe("non_compliant");
+      expect(result.riskReport.highRiskCount).toBeGreaterThan(0);
     });
   });
 });

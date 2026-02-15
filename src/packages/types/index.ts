@@ -1198,20 +1198,11 @@ export interface StandardMapping {
   rationale: string;
 }
 
-export interface RiskScore {
-  category: string;
-  score: number;
-  maxScore: number;
-  severity: ComplianceSeverity;
-  contributingFactors: string[];
-}
-
 export interface ComplianceRiskReport {
-  overallRiskScore: number;
-  maxPossibleScore: number;
-  riskLevel: "low" | "medium" | "high" | "critical";
-  categories: RiskScore[];
-  topRisks: string[];
+  overallScore: number;
+  highRiskCount: number;
+  projectedRemediationCost: number;
+  complianceProbability: number;
 }
 
 export interface AuditFinding {
