@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/modules/tenant";
 import Index from "./pages/Index";
 import Builder from "./pages/Builder";
 import Viewer from "./pages/Viewer";
+import Compliance from "./pages/Compliance";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const AppRoutes = () => (
     <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
     <Route path="/builder" element={<ProtectedRoute><Builder /></ProtectedRoute>} />
     <Route path="/viewer" element={<ProtectedRoute><Viewer /></ProtectedRoute>} />
+    <Route path="/compliance" element={<ProtectedRoute><Compliance /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );

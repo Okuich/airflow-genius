@@ -1,4 +1,4 @@
-import { Wind, BarChart3, Settings2, FolderOpen, Cpu, HelpCircle, LogOut, Eye } from "lucide-react";
+import { Wind, BarChart3, Settings2, FolderOpen, Cpu, HelpCircle, LogOut, Eye, Shield } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const NAV_ITEMS = [
@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { icon: Wind, label: "Simulations", href: "/" },
   { icon: FolderOpen, label: "Projects", href: "/" },
   { icon: Eye, label: "3D Viewer", href: "/viewer" },
+  { icon: Shield, label: "Compliance", href: "/compliance" },
   { icon: Cpu, label: "Solver Queue", href: "/" },
   { icon: Settings2, label: "Settings", href: "/" },
 ];
