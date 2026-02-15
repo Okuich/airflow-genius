@@ -74,9 +74,8 @@ export class AuditDocumentGenerator {
     findings: AuditFinding[],
     riskReport: ComplianceRiskReport
   ): AuditDocument["overallVerdict"] {
-    const hasCritical = findings.some((f) => f.severity === "Critical" || f.severity === "High");
-    if (hasCritical) return "non_compliant";
-    if (riskReport.riskLevel === "high" || riskReport.riskLevel === "critical") return "non_compliant";
+    if (riskReport.highRiskCount > 0) return "non_compliant";
+    if (riskReport.overallScore >= 50) return "non_compliant";
     if (findings.length > 0) return "conditionally_compliant";
     return "compliant";
   }
@@ -96,7 +95,7 @@ export class AuditDocumentGenerator {
     verdict: AuditDocument["overallVerdict"]
   ): string {
     if (verdict === "compliant") {
-      return `All evaluated compliance checks passed. Overall risk level: ${riskReport.riskLevel}. No findings require remediation.`;
+      return `All evaluated compliance checks passed. Compliance probability: ${(riskReport.complianceProbability * 100).toFixed(0)}%. No findings require remediation.`;
     }
 
     const critical = findings.filter((f) => f.severity === "Critical").length;
@@ -106,16 +105,14 @@ export class AuditDocumentGenerator {
 
     const parts: string[] = [];
     parts.push(`Audit verdict: ${verdict.replace(/_/g, " ")}.`);
-    parts.push(`Risk level: ${riskReport.riskLevel} (score ${riskReport.overallRiskScore}/${riskReport.maxPossibleScore}).`);
+    parts.push(`Risk score: ${riskReport.overallScore}/100.`);
+    parts.push(`Compliance probability: ${(riskReport.complianceProbability * 100).toFixed(0)}%.`);
+    parts.push(`Projected remediation cost: $${riskReport.projectedRemediationCost.toLocaleString()}.`);
 
     if (critical > 0) parts.push(`${critical} critical finding(s) requiring immediate remediation.`);
     if (high > 0) parts.push(`${high} high-severity finding(s) to address within 7 days.`);
     if (medium > 0) parts.push(`${medium} medium finding(s) to address within 30 days.`);
     if (low > 0) parts.push(`${low} advisory note(s).`);
-
-    if (riskReport.topRisks.length > 0) {
-      parts.push(`Top risk: ${riskReport.topRisks[0]}.`);
-    }
 
     return parts.join(" ");
   }

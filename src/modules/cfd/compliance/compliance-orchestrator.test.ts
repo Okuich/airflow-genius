@@ -20,7 +20,7 @@ describe("ComplianceOrchestrator (module integration)", () => {
     expect(result.simulationId).toBe("sim-001");
     expect(result.findings.length).toBeGreaterThan(0);
     expect(result.findings.every((f) => f.status === "Pass")).toBe(true);
-    expect(result.riskReport.riskLevel).toBe("low");
+    expect(result.riskReport.overallScore).toBe(0);
     expect(result.auditDocument.overallVerdict).toBe("compliant");
     expect(result.standardMappings.length).toBeGreaterThan(0);
   });
@@ -42,7 +42,7 @@ describe("ComplianceOrchestrator (module integration)", () => {
     expect(failures.length).toBeGreaterThan(0);
     expect(result.auditDocument.overallVerdict).toBe("non_compliant");
     expect(result.auditDocument.findings.length).toBeGreaterThan(0);
-    expect(result.riskReport.topRisks.length).toBeGreaterThan(0);
+    expect(result.riskReport.highRiskCount).toBeGreaterThan(0);
   });
 
   it("handles data-center domain with PUE and thermal checks", () => {
