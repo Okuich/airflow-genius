@@ -9,6 +9,7 @@ export enum IntentCategory {
   BillingDispute = "billing_dispute",
   ComputeOverrun = "compute_overrun",
   ContaminationDiagnostic = "contamination_diagnostic",
+  ExhaustSystemDiagnostic = "exhaust_system_diagnostic",
   GeneralQuestion = "general_question",
   SimulationSetup = "simulation_setup",
   Unknown = "unknown",
@@ -35,6 +36,9 @@ export enum ActionType {
   RestartSolver = "restart_solver",
   AdjustParticleTransport = "adjust_particle_transport",
   RefineCleanroomMesh = "refine_cleanroom_mesh",
+  AdjustExhaustFlow = "adjust_exhaust_flow",
+  OptimizeHoodDesign = "optimize_hood_design",
+  AddBackdraftDamper = "add_backdraft_damper",
 }
 
 export enum DiagnosticCheck {
@@ -52,6 +56,10 @@ export enum DiagnosticCheck {
   ContaminantDecayRate = "contaminant_decay_rate",
   ISOClassCompliance = "iso_class_compliance",
   LaminarCoverage = "laminar_coverage",
+  CaptureVelocity = "capture_velocity",
+  BackflowRisk = "backflow_risk",
+  SpeciesConcentration = "species_concentration",
+  NegativePressure = "negative_pressure",
 }
 
 export enum PlanStatus {

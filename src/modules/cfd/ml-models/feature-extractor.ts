@@ -312,6 +312,8 @@ export class FeatureExtractor {
       case FlowType.LaminarFlowValidation: return 2;
       case FlowType.ParticleDispersion: return 3;
       case FlowType.ContaminantDecay: return 4;
+      case FlowType.ExhaustVentilation: return 5;
+      case FlowType.BuoyancyDriven: return 6;
       default: return 0;
     }
   }

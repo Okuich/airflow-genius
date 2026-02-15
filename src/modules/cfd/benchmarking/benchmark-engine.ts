@@ -23,6 +23,7 @@ export type GeometryCluster =
   | "rotating-machinery"
   | "heat-exchanger"
   | "cleanroom"
+  | "exhaust-system"
   | "generic";
 
 export interface BenchmarkReport {
@@ -126,6 +127,9 @@ export class BenchmarkEngine {
 
   /** Deterministic geometry classification based on config features. */
   classifyGeometry(config: SimulationConfig): GeometryCluster {
+    // Exhaust system: has species transport or exhaust flow type
+    if (this.isExhaustConfig(config)) return "exhaust-system";
+
     // Cleanroom: has particle transport or cleanroom flow types
     if (this.isCleanroomConfig(config)) return "cleanroom";
 
@@ -173,6 +177,15 @@ export class BenchmarkEngine {
       config.flowType === FlowType.ParticleDispersion ||
       config.flowType === FlowType.ContaminantDecay ||
       config.flowType === FlowType.LaminarFlowValidation
+    );
+  }
+
+  private isExhaustConfig(config: SimulationConfig): boolean {
+    return (
+      "speciesTransport" in config ||
+      "exhaustBoundaryIds" in config ||
+      config.flowType === FlowType.ExhaustVentilation ||
+      config.flowType === FlowType.BuoyancyDriven
     );
   }
 
