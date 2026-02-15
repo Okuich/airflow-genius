@@ -76,10 +76,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Auth state listener ──────────────────────────────────────────────
   useEffect(() => {
     let mounted = true;
+    let initialSessionHandled = false;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, sess) => {
         if (!mounted) return;
+        // Skip if this is the initial event — handled by getSession below
+        if (!initialSessionHandled) return;
         setSession(sess);
         setUser(sess?.user ?? null);
         if (sess?.user) {
@@ -96,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     supabase.auth.getSession().then(async ({ data: { session: sess } }) => {
       if (!mounted) return;
+      initialSessionHandled = true;
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
@@ -103,17 +107,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       if (mounted) setLoading(false);
     }).catch(() => {
-      if (mounted) setLoading(false);
+      if (mounted) {
+        initialSessionHandled = true;
+        setLoading(false);
+      }
     });
-
-    // Safety timeout — never stay loading forever
-    const timeout = setTimeout(() => {
-      if (mounted) setLoading(false);
-    }, 5000);
 
     return () => {
       mounted = false;
-      clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, [loadUserData]);
