@@ -438,6 +438,17 @@ export interface AgricultureVentilationMetrics {
   airflowUniformityIndex: number;
 }
 
+export interface DataCenterMetrics {
+  /** Number of rack hotspots detected (temperature exceeding threshold). */
+  rackHotspotCount: number;
+  /** Cooling efficiency score (0–1, 1 = optimal cooling). */
+  coolingEfficiencyScore: number;
+  /** Airflow containment score (0–1, 1 = perfect hot/cold aisle separation). */
+  airflowContainmentScore: number;
+  /** Predicted Power Usage Effectiveness impact (≥1.0, lower is better). */
+  predictedPUEImpact: number;
+}
+
 // ── Agricultural Ventilation ────────────────────────────────────────────────
 
 export interface MultiZoneAirflowModel {
