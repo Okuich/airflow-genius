@@ -12,3 +12,16 @@ export type {
   IngestOptions,
   GeometryCluster,
 } from "./types";
+export {
+  cfdFeatureVectorV1Schema,
+  cfdFeatureVectorV2Schema,
+  validateFeatureVector,
+  safeValidateFeatureVector,
+  cfdFeatureToArray,
+  MODEL_TYPE_FEATURES,
+} from "./schemas";
+export type {
+  CFDFeatureVector,
+  CFDFeatureVectorV2,
+  SchemaVersion,
+} from "./schemas";
