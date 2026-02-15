@@ -8,3 +8,11 @@ export type {
   PipelineStep,
   EvaluationReport,
 } from "./training-pipeline";
+export { MLTrainingOrchestrator } from "./ml-training-orchestrator";
+export type {
+  MLOrchestratorConfig,
+  ThresholdCheck,
+  TrainingArtifact,
+  EvaluationResult,
+  RegisteredModel,
+} from "./ml-training-orchestrator";
