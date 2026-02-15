@@ -9,3 +9,10 @@ export type {
   UsageReport,
   AgentNotification,
 } from "./compute-usage-service";
+export { GPUJobScheduler, JobPriority, SimulationSize } from "./gpu-job-scheduler";
+export type {
+  ResourceAllocation,
+  GPUMetrics,
+  SchedulerConfig,
+  ScalingHook,
+} from "./gpu-job-scheduler";
