@@ -232,6 +232,13 @@ export interface EfficiencyMetrics {
 
 export type EfficiencyRating = "Poor" | "Average" | "Good" | "Excellent";
 
+export interface CleanroomMetrics {
+  airChangeRate: number;
+  particleRetentionRate: number;
+  isoClassEstimate: string;
+  laminarStabilityScore: number;
+}
+
 export interface HumanReadableSummary {
   keyFindings: string[];
   pressureLossEstimate: number;
