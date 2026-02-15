@@ -25,6 +25,8 @@ export enum FlowType {
   LaminarFlowValidation = "laminar_flow_validation",
   ParticleDispersion = "particle_dispersion",
   ContaminantDecay = "contaminant_decay",
+  ExhaustVentilation = "exhaust_ventilation",
+  BuoyancyDriven = "buoyancy_driven",
 }
 
 export enum TurbulenceType {
@@ -317,6 +319,111 @@ export interface ExhaustSystemMetrics {
   negativePressureStability: number;
   /** Risk score for backflow at exhaust openings (0–1, 0 = no risk). */
   backflowRiskScore: number;
+}
+
+// ── Industrial Exhaust / Species Transport ──────────────────────────────────
+
+export interface SpeciesTransportModel {
+  /** Enable multi-species transport. */
+  enabled: boolean;
+  /** List of tracked species. */
+  species: SpeciesDefinition[];
+  /** Schmidt number for turbulent diffusion. */
+  turbulentSchmidtNumber: number;
+  /** Enable chemical reactions between species. */
+  enableReactions: boolean;
+}
+
+export interface SpeciesDefinition {
+  /** Species identifier (e.g. "CO2", "toluene"). */
+  name: string;
+  /** Molecular weight in g/mol. */
+  molecularWeight: number;
+  /** Mass diffusivity in m²/s. */
+  massDiffusivity: number;
+  /** Initial mass fraction in the domain (0–1). */
+  initialMassFraction: number;
+  /** Toxicity exposure limit in ppm (null = non-toxic). */
+  exposureLimit: number | null;
+}
+
+export interface BuoyancyDrivenFlowConfig {
+  /** Enable Boussinesq approximation for buoyancy. */
+  enabled: boolean;
+  /** Thermal expansion coefficient β (1/K). */
+  thermalExpansionCoefficient: number;
+  /** Reference temperature for Boussinesq model (K). */
+  referenceTemperature: number;
+  /** Gravity vector (typically {x:0, y:-9.81, z:0}). */
+  gravity: Vector3;
+  /** Rayleigh number estimate (derived, informational). */
+  rayleighNumber?: number;
+}
+
+export interface ExhaustSimulationConfig extends SimulationConfig {
+  /** Species transport model for contaminant tracking. */
+  speciesTransport: SpeciesTransportModel;
+  /** Buoyancy configuration for thermal plume modelling. */
+  buoyancy?: BuoyancyDrivenFlowConfig;
+  /** Exhaust hood / duct IDs in boundary conditions. */
+  exhaustBoundaryIds: string[];
+  /** Source emission rate in kg/s (contaminant generation). */
+  sourceEmissionRate: number;
+  /** Enclosure volume in m³. */
+  enclosureVolume: number;
+  /** Target capture velocity at hood face in m/s. */
+  targetCaptureVelocity: number;
+}
+
+export interface ExhaustOptimizationResult {
+  /** Overall exhaust effectiveness score (0–1). */
+  effectivenessScore: number;
+  /** Current vs target capture velocity ratio. */
+  captureVelocityRatio: number;
+  /** Predicted contaminant removal efficiency (0–1). */
+  predictedRemovalEfficiency: number;
+  /** Recommended actions to improve exhaust performance. */
+  recommendations: ExhaustRecommendation[];
+  /** Per-species breakdown. */
+  speciesBreakdown: SpeciesRemovalBreakdown[];
+  /** Backflow risk assessment. */
+  backflowAssessment: BackflowAssessment;
+}
+
+export interface ExhaustRecommendation {
+  category: "hood_design" | "duct_sizing" | "fan_selection" | "baffle_placement" | "source_control";
+  message: string;
+  priority: "low" | "medium" | "high" | "critical";
+  estimatedImprovement: string;
+}
+
+export interface SpeciesRemovalBreakdown {
+  speciesName: string;
+  inletMassFraction: number;
+  outletMassFraction: number;
+  removalEfficiency: number;
+  exceedsExposureLimit: boolean;
+}
+
+export interface BackflowAssessment {
+  /** Overall backflow risk (0–1, 0 = no risk). */
+  overallRisk: number;
+  /** Per-exhaust-boundary risk breakdown. */
+  boundaryRisks: BoundaryBackflowRisk[];
+  /** Root causes identified. */
+  rootCauses: string[];
+  /** Mitigation actions. */
+  mitigations: string[];
+}
+
+export interface BoundaryBackflowRisk {
+  boundaryId: string;
+  boundaryName: string;
+  riskScore: number;
+  /** Fraction of face area with reverse flow. */
+  reverseFlowFraction: number;
+  /** Mean reverse velocity magnitude in m/s. */
+  meanReverseVelocity: number;
 }
 
 export interface HumanReadableSummary {

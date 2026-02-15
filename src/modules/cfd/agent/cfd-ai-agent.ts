@@ -80,6 +80,12 @@ const KNOWLEDGE_BASE: KnowledgePattern[] = [
     diagnosticChecks: [DiagnosticCheck.ParticleResidenceTime, DiagnosticCheck.ContaminantDecayRate, DiagnosticCheck.ISOClassCompliance, DiagnosticCheck.LaminarCoverage],
     commonActions: [ActionType.AdjustParticleTransport, ActionType.RefineCleanroomMesh, ActionType.ProvideExplanation],
   },
+  {
+    intent: IntentCategory.ExhaustSystemDiagnostic,
+    keywords: ["exhaust", "hood", "capture velocity", "backflow", "backdraft", "species", "fume", "ventilation", "duct", "buoyancy", "plume", "negative pressure", "contaminant removal", "exposure limit"],
+    diagnosticChecks: [DiagnosticCheck.CaptureVelocity, DiagnosticCheck.BackflowRisk, DiagnosticCheck.SpeciesConcentration, DiagnosticCheck.NegativePressure],
+    commonActions: [ActionType.AdjustExhaustFlow, ActionType.OptimizeHoodDesign, ActionType.AddBackdraftDamper, ActionType.ProvideExplanation],
+  },
 ];
 
 // ─── Agent Implementation ───────────────────────────────────────────────────
@@ -436,6 +442,10 @@ export class CFDAIAgent {
       [DiagnosticCheck.ContaminantDecayRate]: () => ({ check, passed: true, value: 0.92, threshold: "R² > 0.85", severity: Severity.Low, detail: "Contaminant decay fit R² = 0.92 — good exponential fit" }),
       [DiagnosticCheck.ISOClassCompliance]: () => ({ check, passed: false, value: "ISO 6", threshold: "ISO 5", severity: Severity.High, detail: "Estimated ISO class 6 exceeds target ISO 5 — particle retention rate insufficient" }),
       [DiagnosticCheck.LaminarCoverage]: () => ({ check, passed: true, value: 0.87, threshold: "> 0.80", severity: Severity.Low, detail: "Laminar coverage 87% — meets unidirectional flow requirement" }),
+      [DiagnosticCheck.CaptureVelocity]: () => ({ check, passed: false, value: 0.35, threshold: "> 0.5 m/s (ACGIH min)", severity: Severity.High, detail: "Hood capture velocity 0.35 m/s is below ACGIH minimum — contaminant escape likely" }),
+      [DiagnosticCheck.BackflowRisk]: () => ({ check, passed: false, value: 0.65, threshold: "< 0.2", severity: Severity.High, detail: "Backflow risk score 0.65 — reverse flow detected at exhaust openings, consider backdraft dampers" }),
+      [DiagnosticCheck.SpeciesConcentration]: () => ({ check, passed: false, value: "above TLV", threshold: "Below occupational exposure limit", severity: Severity.Critical, detail: "One or more species exceed the occupational exposure limit at worker breathing zone" }),
+      [DiagnosticCheck.NegativePressure]: () => ({ check, passed: true, value: -30, threshold: "< -25 Pa", severity: Severity.Low, detail: "Enclosure negative pressure -30 Pa — adequate containment" }),
     };
 
     return checkTemplates[check]();
@@ -529,6 +539,9 @@ export class CFDAIAgent {
       [ActionType.RestartSolver]: "Restart solver with adjusted parameters",
       [ActionType.AdjustParticleTransport]: "Adjust particle transport model parameters (parcel count, wall interaction, injection surfaces)",
       [ActionType.RefineCleanroomMesh]: "Refine mesh near HEPA filter faces, injection surfaces, and critical zones for particle tracking accuracy",
+      [ActionType.AdjustExhaustFlow]: "Increase exhaust fan capacity or adjust duct sizing to improve capture velocity and containment",
+      [ActionType.OptimizeHoodDesign]: "Modify hood geometry — reduce source-to-hood distance, add flanges, or switch to canopy hood for buoyant sources",
+      [ActionType.AddBackdraftDamper]: "Install backdraft dampers on exhaust openings to prevent reverse flow during transient pressure fluctuations",
     };
     return descriptions[type];
   }
@@ -552,6 +565,9 @@ export class CFDAIAgent {
       [ActionType.RestartSolver]: { fromIteration: 0 },
       [ActionType.AdjustParticleTransport]: { increaseParcelCount: true, wallInteraction: "reflect" },
       [ActionType.RefineCleanroomMesh]: { targetRefinementLevels: 3, nearFilterRefinement: true },
+      [ActionType.AdjustExhaustFlow]: { increaseFlowRatePercent: 20, checkDuctLosses: true },
+      [ActionType.OptimizeHoodDesign]: { addFlanges: true, reduceStandoff: true },
+      [ActionType.AddBackdraftDamper]: { damperType: "gravity", locations: "all_exhaust_openings" },
     };
     return paramMap[type] ?? {};
   }
@@ -571,6 +587,9 @@ export class CFDAIAgent {
       [ActionType.RestartSolver]: "Fresh start with adjusted parameters",
       [ActionType.AdjustParticleTransport]: "Improves particle tracking accuracy and residence time prediction",
       [ActionType.RefineCleanroomMesh]: "Captures near-wall particle dynamics and HEPA filter flow distribution",
+      [ActionType.AdjustExhaustFlow]: "Increases capture velocity and reduces backflow risk at exhaust openings",
+      [ActionType.OptimizeHoodDesign]: "Maximizes contaminant capture at the source before dilution into the workspace",
+      [ActionType.AddBackdraftDamper]: "Physically prevents reverse flow during fan-off or transient pressure events",
     };
     return impacts[type];
   }
