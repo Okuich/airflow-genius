@@ -22,6 +22,9 @@ export interface FieldPoint {
 export enum FlowType {
   Steady = "steady",
   Transient = "transient",
+  LaminarFlowValidation = "laminar_flow_validation",
+  ParticleDispersion = "particle_dispersion",
+  ContaminantDecay = "contaminant_decay",
 }
 
 export enum TurbulenceType {
