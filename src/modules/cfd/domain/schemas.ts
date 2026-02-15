@@ -110,3 +110,26 @@ export const SimulationConfigSchema = z.object({
   referenceTemperature: z.number().positive().optional(),
   referencePressure: z.number(),
 });
+
+// ─── Rotating Machinery ─────────────────────────────────────────────────────
+
+export const BladeTipRefinementSchema = z.object({
+  tipClearance: z.number().positive().describe("Tip clearance gap in meters"),
+  refinementRadius: z.number().positive().describe("Radius of refinement zone around blade tip in meters"),
+  refinementLevels: z.number().int().min(1).max(8),
+  minCellSize: z.number().positive().describe("Minimum cell size in blade tip region in meters"),
+});
+
+export const FanSimulationConfigSchema = SimulationConfigSchema.extend({
+  rpm: z.number().min(50).max(50_000).describe("Rotational speed in RPM — typical HVAC fans 300-3600, industrial blowers up to 20000"),
+  bladeCount: z.number().int().min(2).max(100),
+  rotatingZoneRadius: z.number().positive().describe("Radius of the MRF/sliding mesh zone in meters"),
+  bladeTipRefinement: BladeTipRefinementSchema,
+  boundaryLayerAutoDetect: z.boolean(),
+}).refine(
+  (d) => d.bladeTipRefinement.refinementRadius <= d.rotatingZoneRadius,
+  { message: "Blade tip refinement radius must not exceed the rotating zone radius" }
+).refine(
+  (d) => d.bladeTipRefinement.minCellSize <= d.meshSettings.baseSize,
+  { message: "Blade tip minCellSize must be ≤ mesh baseSize" }
+);
