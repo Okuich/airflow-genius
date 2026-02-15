@@ -34,3 +34,10 @@ export type {
   RichardsonExtrapolation,
   RefinementStudyResult,
 } from "./mesh-refinement-study";
+export { ProgressiveMeshController } from "./progressive-mesh-controller";
+export type {
+  ProgressiveMeshConfig,
+  GradientRegion,
+  RefinementPass,
+  MeshRefinementReport,
+} from "./progressive-mesh-controller";
