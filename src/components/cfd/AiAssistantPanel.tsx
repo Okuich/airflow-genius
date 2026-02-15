@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, Send, Bot, User, Zap, Activity, Grid3X3, ArrowRightLeft, BarChart3, Play, Loader2, ChevronDown, ChevronUp, ShieldCheck, AlertTriangle, AlertOctagon, CheckCircle2, Wrench, Sparkles } from "lucide-react";
+import { X, Send, Bot, User, Zap, Activity, Grid3X3, ArrowRightLeft, BarChart3, Play, Loader2, ChevronDown, ChevronUp, ShieldCheck, AlertTriangle, AlertOctagon, CheckCircle2, Wrench, Sparkles, Workflow } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { ChatMessage, SimulationContext, ExtractedAction, QuickAction } from "./ai-chat-types";
 import { QUICK_ACTIONS, extractActions, generateMessageId } from "./ai-chat-types";
 import { streamAgentMessage, streamExecutePlan, runAutoDiagnosis, type DiagnosticReport, type DiagnosticIssue } from "./ai-chat-service";
+import { WorkflowPanel } from "./WorkflowPanel";
 
 interface AiAssistantPanelProps {
   onClose: () => void;
@@ -152,6 +153,7 @@ export function AiAssistantPanel({ onClose, simulationContext, simulationData }:
   const [diagnosticReport, setDiagnosticReport] = useState<DiagnosticReport | null>(null);
   const [isDiagnosing, setIsDiagnosing] = useState(false);
   const [isFixing, setIsFixing] = useState(false);
+  const [showWorkflows, setShowWorkflows] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const diagRanRef = useRef(false);
@@ -416,6 +418,13 @@ export function AiAssistantPanel({ onClose, simulationContext, simulationData }:
               </div>
             </div>
             <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setShowWorkflows(!showWorkflows)}
+                className={`p-1 rounded transition-colors ${showWorkflows ? "text-data-cyan bg-data-cyan/10" : "text-muted-foreground hover:text-foreground"}`}
+                title="AI Workflows"
+              >
+                <Workflow className="w-3.5 h-3.5" />
+              </button>
               <button onClick={() => setExpanded(false)} className="text-muted-foreground hover:text-foreground transition-colors p-1">
                 <ChevronUp className="w-3.5 h-3.5" />
               </button>
@@ -440,10 +449,30 @@ export function AiAssistantPanel({ onClose, simulationContext, simulationData }:
             <DiagnosticCard report={diagnosticReport} onAutoFix={handleAutoFix} isFixing={isFixing} />
           )}
 
-          {/* Quick Actions (only when no diagnosis available) */}
-          {messages.length <= 1 && !diagnosticReport && !isDiagnosing && (
+          {/* Workflow Panel */}
+          {showWorkflows && (
+            <div className="px-4 py-3 border-b border-surface-border shrink-0 max-h-[60vh] overflow-y-auto">
+              <WorkflowPanel
+                simulationContext={simulationContext}
+                onClose={() => setShowWorkflows(false)}
+                onSendMessage={(msg) => { setShowWorkflows(false); handleSend(msg); }}
+              />
+            </div>
+          )}
+
+          {/* Quick Actions (only when no diagnosis or workflow visible) */}
+          {messages.length <= 1 && !diagnosticReport && !isDiagnosing && !showWorkflows && (
             <div className="px-4 py-3 border-b border-surface-border space-y-2 shrink-0">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Quick Actions</p>
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Quick Actions</p>
+                <button
+                  onClick={() => setShowWorkflows(true)}
+                  className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-data-cyan bg-data-cyan/10 hover:bg-data-cyan/20 transition-colors"
+                >
+                  <Workflow className="w-3 h-3" />
+                  Workflows
+                </button>
+              </div>
               <div className="grid grid-cols-2 gap-1.5">
                 {QUICK_ACTIONS.map((qa) => {
                   const Icon = ICON_MAP[qa.icon];
