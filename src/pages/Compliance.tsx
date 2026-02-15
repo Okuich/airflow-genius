@@ -2,6 +2,8 @@ import { useState } from "react";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { ComplianceOverview } from "@/components/compliance/ComplianceOverview";
 import { RegulationSelector } from "@/components/compliance/RegulationSelector";
+import { ComplianceFilters } from "@/components/compliance/ComplianceFilters";
+import type { ComplianceRegion, ComplianceIndustry } from "@/components/compliance/ComplianceFilters";
 import { RiskHeatmap } from "@/components/compliance/RiskHeatmap";
 import { AuditReportGenerator } from "@/components/compliance/AuditReportGenerator";
 import { ViolationExplorer } from "@/components/compliance/ViolationExplorer";
@@ -20,6 +22,9 @@ const DOMAIN_METRICS: Record<AirflowComplianceDomain, Record<string, number>> = 
 
 const Compliance = () => {
   const [domain, setDomain] = useState<AirflowComplianceDomain>("exhaust");
+  const [region, setRegion] = useState<ComplianceRegion>("US");
+  const [industry, setIndustry] = useState<ComplianceIndustry>("Exhaust");
+  const [effectiveDate, setEffectiveDate] = useState(() => new Date().toISOString().slice(0, 10));
   const metrics = DOMAIN_METRICS[domain];
 
   return (
@@ -34,6 +39,14 @@ const Compliance = () => {
 
         <div className="p-8 space-y-6">
           <RegulationSelector selected={domain} onChange={setDomain} />
+          <ComplianceFilters
+            region={region}
+            industry={industry}
+            effectiveDate={effectiveDate}
+            onRegionChange={setRegion}
+            onIndustryChange={setIndustry}
+            onEffectiveDateChange={setEffectiveDate}
+          />
           <ComplianceOverview domain={domain} metrics={metrics} />
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
