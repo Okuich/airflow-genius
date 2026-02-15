@@ -2,11 +2,31 @@ import { useFormContext } from "react-hook-form";
 import { TurbulenceType } from "@/modules/cfd/domain/models";
 import type { SimulationBuilderFormData } from "./builder-schemas";
 import { FormField } from "./FormField";
+import { TURBULENCE_FLAGS } from "@/packages/config";
+
+/** Maps each TurbulenceType to its feature-flag key */
+const MODEL_FLAG_MAP: Record<string, keyof typeof TURBULENCE_FLAGS> = {
+  [TurbulenceType.KEpsilon]: "kEpsilon",
+  [TurbulenceType.SST]: "sst",
+  [TurbulenceType.KEpsilonRNG]: "kEpsilonRNG",
+  [TurbulenceType.SpalartAllmaras]: "spalartAllmaras",
+};
+
+const MODEL_LABELS: Record<string, string> = {
+  [TurbulenceType.KEpsilon]: "k-ε Standard",
+  [TurbulenceType.SST]: "k-ω SST",
+  [TurbulenceType.KEpsilonRNG]: "k-ε RNG",
+  [TurbulenceType.SpalartAllmaras]: "Spalart–Allmaras",
+};
 
 export function TurbulenceSelector() {
   const { register, watch, formState: { errors } } = useFormContext<SimulationBuilderFormData>();
   const turbType = watch("turbulenceModel.type");
   const turbErrors = errors.turbulenceModel as Record<string, { message?: string }> | undefined;
+
+  const enabledModels = Object.entries(MODEL_FLAG_MAP)
+    .filter(([, flag]) => TURBULENCE_FLAGS[flag])
+    .map(([value]) => value);
 
   return (
     <section className="surface-panel rounded-lg p-6 space-y-5">
@@ -18,8 +38,9 @@ export function TurbulenceSelector() {
             {...register("turbulenceModel.type")}
             className="w-full rounded-md surface-raised border border-surface-border px-3 py-2 text-sm text-foreground bg-transparent focus:outline-none focus:ring-1 focus:ring-ring font-mono"
           >
-            <option value={TurbulenceType.KEpsilon}>k-ε Standard</option>
-            <option value={TurbulenceType.SST}>k-ω SST</option>
+            {enabledModels.map((val) => (
+              <option key={val} value={val}>{MODEL_LABELS[val]}</option>
+            ))}
           </select>
         </FormField>
 
