@@ -9,6 +9,7 @@ import Builder from "./pages/Builder";
 import Viewer from "./pages/Viewer";
 import Compliance from "./pages/Compliance";
 import MLPipeline from "./pages/MLPipeline";
+import ModelExplainability from "./pages/ModelExplainability";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,7 @@ const AppRoutes = () => (
     <Route path="/viewer" element={<ProtectedRoute><Viewer /></ProtectedRoute>} />
     <Route path="/compliance" element={<ProtectedRoute><Compliance /></ProtectedRoute>} />
     <Route path="/ml-pipeline" element={<ProtectedRoute><MLPipeline /></ProtectedRoute>} />
+    <Route path="/explainability" element={<ProtectedRoute><ModelExplainability /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
