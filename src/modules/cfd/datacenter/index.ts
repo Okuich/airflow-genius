@@ -11,3 +11,5 @@ export { CoolingEfficiencyPredictor } from "./cooling-efficiency-predictor";
 export type { CoolingEfficiencyReport } from "./cooling-efficiency-predictor";
 export { CoolingTopologyOptimizer } from "./cooling-topology-optimizer";
 export type { OptimizationResult, NudgeRecord, OptimizerOptions } from "./cooling-topology-optimizer";
+export { PUEForecaster } from "./pue-forecaster";
+export type { PUEForecast, ForecastPoint, ForecastOptions, WorkloadTrend, SeasonalProfile, PlannedUpgrade } from "./pue-forecaster";
