@@ -10,4 +10,7 @@ export type {
   RiskScoreResponse,
   ComplianceVerdict,
   ComplianceApiError,
+  GenerateReportRequest,
+  ComplianceReport,
+  ListReportsParams,
 } from "./types";

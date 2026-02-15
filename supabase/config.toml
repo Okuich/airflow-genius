@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.agent-execute-plan]
 verify_jwt = false
+
+[functions.compliance-reports]
+verify_jwt = false
