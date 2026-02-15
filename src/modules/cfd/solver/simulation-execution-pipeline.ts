@@ -41,6 +41,13 @@ export interface PipelineConfig {
   pollingIntervalMs: number;
 }
 
+export interface ConvergenceWarning {
+  likelihood: number;
+  threshold: number;
+  suggestions: string[];
+  gpuBlocked: boolean;
+}
+
 export interface GPUAllocation {
   gpuCount: number;
   cpuCores: number;
@@ -79,6 +86,7 @@ export interface PipelineResult {
     convergence: ConvergencePrediction;
     efficiency: EfficiencyPrediction;
   } | null;
+  convergenceWarning: ConvergenceWarning | null;
   gpuAllocation: GPUAllocation | null;
   solverJobId: string | null;
   earlyTerminated: boolean;
@@ -131,6 +139,7 @@ export class SimulationExecutionPipeline {
     const stages: StageResult[] = [];
     const adaptiveSteps: AdaptiveTimeStep[] = [];
     let surrogateCheck: PipelineResult["surrogateCheck"] = null;
+    let convergenceWarning: ConvergenceWarning | null = null;
     let gpuAllocation: GPUAllocation | null = null;
     let solverJobId: string | null = null;
     let earlyTerminated = false;
@@ -177,20 +186,30 @@ export class SimulationExecutionPipeline {
       surrogateCheck = checks;
 
       // ── 2. Convergence Gate ───────────────────────────────────────────
+      const gpuBlocked = checks.convergence.likelihood < this.config.convergenceGateThreshold;
+
       await track("convergence_gate", async () => {
-        if (checks.convergence.likelihood < this.config.convergenceGateThreshold) {
-          throw new Error(
-            `Convergence likelihood too low (${checks.convergence.likelihood.toFixed(3)} < ` +
-            `${this.config.convergenceGateThreshold}). ` +
-            `Label: ${checks.convergence.label}. ` +
-            `Consider refining mesh or adjusting solver settings.`
+        if (gpuBlocked) {
+          convergenceWarning = {
+            likelihood: checks.convergence.likelihood,
+            threshold: this.config.convergenceGateThreshold,
+            suggestions: this.suggestConfigFixes(simConfig, checks.convergence),
+            gpuBlocked: true,
+          };
+          onProgress?.("convergence_gate",
+            `⚠ Low convergence probability (${checks.convergence.likelihood.toFixed(3)}). GPU blocked. ` +
+            convergenceWarning.suggestions.join(" | ")
           );
         }
       });
 
       // ── 3. GPU Allocation Optimizer ───────────────────────────────────
       const { result: allocation } = await track("gpu_allocation", async () => {
-        return this.optimizeGPUAllocation(simConfig, checks.convergence, checks.efficiency);
+        const alloc = this.optimizeGPUAllocation(simConfig, checks.convergence, checks.efficiency);
+        if (gpuBlocked) {
+          return { ...alloc, gpuCount: 0, reasoning: alloc.reasoning + " [GPU blocked: low convergence probability]" };
+        }
+        return alloc;
       });
       gpuAllocation = allocation;
 
@@ -267,6 +286,7 @@ export class SimulationExecutionPipeline {
         success: solverResult.success && !earlyTerminated,
         stages,
         surrogateCheck,
+        convergenceWarning,
         gpuAllocation,
         solverJobId,
         earlyTerminated,
@@ -280,6 +300,7 @@ export class SimulationExecutionPipeline {
         success: false,
         stages,
         surrogateCheck,
+        convergenceWarning,
         gpuAllocation,
         solverJobId,
         earlyTerminated,
@@ -418,6 +439,37 @@ export class SimulationExecutionPipeline {
     if (values.some((v) => Math.abs(v) > 1e6)) return true;
 
     return false;
+  }
+
+  // ── Config Fix Suggestions ─────────────────────────────────────────────
+
+  private suggestConfigFixes(config: SimulationConfig, convergence: ConvergencePrediction): string[] {
+    const suggestions: string[] = [];
+    const re = this.estimateReynoldsNumber(config);
+
+    if (config.meshSettings.qualityThreshold < 0.8) {
+      suggestions.push("Increase mesh quality threshold (≥ 0.85 recommended)");
+    }
+    if (config.meshSettings.targetCellCount < 200_000) {
+      suggestions.push("Increase target cell count for better resolution");
+    }
+    if (config.solverSettings.relaxationPressure > 0.4) {
+      suggestions.push(`Lower pressure relaxation factor (currently ${config.solverSettings.relaxationPressure}, try 0.2–0.3)`);
+    }
+    if (config.solverSettings.relaxationVelocity > 0.8) {
+      suggestions.push(`Lower velocity relaxation factor (currently ${config.solverSettings.relaxationVelocity}, try 0.5–0.7)`);
+    }
+    if (re > 500_000 && config.turbulenceModel.type === "k-epsilon") {
+      suggestions.push("Consider switching to k-omega-sst for high-Re flows");
+    }
+    if (config.meshSettings.boundaryLayerCount < 5) {
+      suggestions.push("Add more boundary layer cells (≥ 5 recommended)");
+    }
+    if (suggestions.length === 0) {
+      suggestions.push("Try refining the mesh near critical surfaces or reducing time step");
+    }
+
+    return suggestions;
   }
 
   // ── Internal Helpers ──────────────────────────────────────────────────
