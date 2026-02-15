@@ -128,3 +128,20 @@ export const FEATURES = {
   enableSurrogateModels: false,
   enableBenchmarking: false,
 } as const;
+
+// ── Turbulence Model Feature Flags ──────────────────────────────────────────
+// Controls visibility of experimental turbulence models in production.
+// Set to `true` to expose a model in the Simulation Builder UI.
+
+export const TURBULENCE_FLAGS = {
+  /** Standard k-ε — always available */
+  kEpsilon: true,
+  /** k-ω SST — always available */
+  sst: true,
+  /** k-ε RNG variant — experimental */
+  kEpsilonRNG: false,
+  /** Spalart–Allmaras — experimental */
+  spalartAllmaras: false,
+} as const;
+
+export type TurbulenceFlagKey = keyof typeof TURBULENCE_FLAGS;
