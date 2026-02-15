@@ -30,3 +30,14 @@ export interface SaveVersionOptions {
   normalization: NormalizationParams;
   metrics: SurrogateModelMetrics;
 }
+
+/** High-level metadata describing a registered model (UI / audit). */
+export interface ModelMetadata {
+  id: string;
+  version: string;
+  type: "Convergence" | "Efficiency" | "Turbulence";
+  trainedAt: Date;
+  datasetSize: number;
+  validationScore: number;
+  deployed: boolean;
+}
