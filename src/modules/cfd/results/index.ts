@@ -8,4 +8,7 @@ export type {
   EfficiencyRating,
   HumanReadableSummary,
   AISummaryGenerator,
+  EnhancedSummary,
+  MeshDiagnosticsInput,
+  MeshQualityReport,
 } from "./results-interpreter";
