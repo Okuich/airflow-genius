@@ -19,6 +19,8 @@ import { InMemoryStore } from "./memory-store";
 import { StructuredLogger } from "../solver/logger";
 import { ComputeUsageService } from "../compute/compute-usage-service";
 import type { AgentNotification, UsageReport } from "../compute/compute-usage-service";
+import { InferenceClient, type InferenceResult } from "../inference/inference-client";
+import type { FeatureVector } from "@/packages/types";
 
 // ─── Knowledge Patterns ─────────────────────────────────────────────────────
 
@@ -79,12 +81,68 @@ const KNOWLEDGE_BASE: KnowledgePattern[] = [
 export class CFDAIAgent {
   private readonly memory: MemoryStore;
   private readonly logger: StructuredLogger;
+  private readonly inferenceClient = new InferenceClient();
   private computeService: ComputeUsageService | null = null;
   private readonly notificationLog: AgentNotification[] = [];
 
   constructor(memory?: MemoryStore) {
     this.memory = memory ?? new InMemoryStore();
     this.logger = new StructuredLogger("CFDAIAgent");
+  }
+
+  // ── Inference API Integration ──────────────────────────────────────
+
+  /**
+   * Get surrogate model predictions for a feature vector.
+   * Used to enrich diagnostics and resolution plans with ML insights.
+   */
+  async getSurrogatePredictions(
+    orgId: string,
+    features: FeatureVector
+  ): Promise<InferenceResult[]> {
+    try {
+      const results = await this.inferenceClient.predictAll(orgId, features);
+      this.logger.info("Surrogate predictions retrieved", {
+        orgId,
+        predictions: results.filter((r) => r.prediction).length,
+      });
+      return results;
+    } catch (err) {
+      this.logger.warn("Failed to get surrogate predictions", { error: String(err) });
+      return [];
+    }
+  }
+
+  /**
+   * Enrich a diagnostic report with surrogate model predictions.
+   * Adds convergence risk and efficiency predictions to the report summary.
+   */
+  async enrichDiagnosticsWithML(
+    report: DiagnosticReport,
+    orgId: string,
+    features: FeatureVector
+  ): Promise<DiagnosticReport> {
+    const predictions = await this.getSurrogatePredictions(orgId, features);
+
+    const convergencePred = predictions.find((p) => p.prediction?.modelType === "convergence");
+    const efficiencyPred = predictions.find((p) => p.prediction?.modelType === "efficiency");
+
+    let mlSummary = "";
+    if (convergencePred?.prediction) {
+      mlSummary += ` ML convergence prediction: ${convergencePred.prediction.label} (confidence: ${(convergencePred.prediction.confidence * 100).toFixed(0)}%).`;
+    }
+    if (efficiencyPred?.prediction) {
+      mlSummary += ` ML efficiency prediction: ${efficiencyPred.prediction.label} (confidence: ${(efficiencyPred.prediction.confidence * 100).toFixed(0)}%).`;
+    }
+
+    if (mlSummary) {
+      return {
+        ...report,
+        summary: report.summary + mlSummary,
+      };
+    }
+
+    return report;
   }
 
   // ── Compute Usage Integration ───────────────────────────────────────
