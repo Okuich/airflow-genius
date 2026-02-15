@@ -12,3 +12,15 @@ export {
   canEditSimulations,
   canDeleteSimulations,
 } from "./types";
+
+// Re-export RBAC module for convenience
+export {
+  Role,
+  Permission,
+  useRole,
+  usePermission,
+  useOrgScope,
+  RequirePermission,
+  RequireRole,
+  guards,
+} from "@/modules/rbac";
