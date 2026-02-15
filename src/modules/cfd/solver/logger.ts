@@ -1,9 +1,6 @@
-export enum LogLevel {
-  DEBUG = "DEBUG",
-  INFO = "INFO",
-  WARN = "WARN",
-  ERROR = "ERROR",
-}
+import { LogLevel } from "@/packages/types";
+
+export { LogLevel };
 
 interface LogEntry {
   timestamp: string;
