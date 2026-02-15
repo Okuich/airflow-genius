@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -31,7 +32,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-const AppRoutes = () => (
+const AppRoutes = forwardRef<HTMLDivElement>((_props, _ref) => (
   <Routes>
     <Route path="/auth" element={<Auth />} />
     <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
@@ -45,7 +46,7 @@ const AppRoutes = () => (
     <Route path="/datacenter" element={<ProtectedRoute><DataCenterHeatMap /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
-);
+));
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

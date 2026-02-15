@@ -61,6 +61,7 @@ export type Database = {
           expires_at: string | null
           id: string
           is_active: boolean
+          organization_id: string | null
           payload: Json
           source: string
           sync_type: string
@@ -72,6 +73,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          organization_id?: string | null
           payload?: Json
           source?: string
           sync_type: string
@@ -83,13 +85,22 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          organization_id?: string | null
           payload?: Json
           source?: string
           sync_type?: string
           synced_at?: string
           version?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "compliance_knowledge_sync_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       compliance_reports: {
         Row: {
@@ -153,6 +164,7 @@ export type Database = {
           completed_at: string | null
           error_message: string | null
           id: string
+          organization_id: string | null
           rules_synced: number
           standards_synced: number
           started_at: string
@@ -163,6 +175,7 @@ export type Database = {
           completed_at?: string | null
           error_message?: string | null
           id?: string
+          organization_id?: string | null
           rules_synced?: number
           standards_synced?: number
           started_at?: string
@@ -173,12 +186,21 @@ export type Database = {
           completed_at?: string | null
           error_message?: string | null
           id?: string
+          organization_id?: string | null
           rules_synced?: number
           standards_synced?: number
           started_at?: string
           status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "compliance_sync_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       compute_usage: {
         Row: {
