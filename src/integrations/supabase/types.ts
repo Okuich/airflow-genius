@@ -68,6 +68,54 @@ export type Database = {
           },
         ]
       }
+      feature_store: {
+        Row: {
+          created_at: string
+          feature_vector: Json
+          feature_version: string
+          geometry_cluster: string
+          id: string
+          labels: Json
+          organization_id: string
+          simulation_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          feature_vector?: Json
+          feature_version?: string
+          geometry_cluster?: string
+          id?: string
+          labels?: Json
+          organization_id: string
+          simulation_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          feature_vector?: Json
+          feature_version?: string
+          geometry_cluster?: string
+          id?: string
+          labels?: Json
+          organization_id?: string
+          simulation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feature_store_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feature_store_simulation_id_fkey"
+            columns: ["simulation_id"]
+            isOneToOne: false
+            referencedRelation: "simulations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ml_model_versions: {
         Row: {
           created_at: string
@@ -261,6 +309,72 @@ export type Database = {
         }
         Relationships: []
       }
+      simulation_results: {
+        Row: {
+          config: Json
+          converged: boolean
+          created_at: string
+          efficiency_rating: string
+          id: string
+          mesh_stats: Json
+          organization_id: string
+          pressure_drop: number
+          raw_output_urls: Json
+          residuals: Json
+          simulation_id: string | null
+          solve_time_seconds: number
+          total_iterations: number
+          user_id: string
+        }
+        Insert: {
+          config?: Json
+          converged?: boolean
+          created_at?: string
+          efficiency_rating?: string
+          id?: string
+          mesh_stats?: Json
+          organization_id: string
+          pressure_drop?: number
+          raw_output_urls?: Json
+          residuals?: Json
+          simulation_id?: string | null
+          solve_time_seconds?: number
+          total_iterations?: number
+          user_id: string
+        }
+        Update: {
+          config?: Json
+          converged?: boolean
+          created_at?: string
+          efficiency_rating?: string
+          id?: string
+          mesh_stats?: Json
+          organization_id?: string
+          pressure_drop?: number
+          raw_output_urls?: Json
+          residuals?: Json
+          simulation_id?: string | null
+          solve_time_seconds?: number
+          total_iterations?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "simulation_results_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "simulation_results_simulation_id_fkey"
+            columns: ["simulation_id"]
+            isOneToOne: false
+            referencedRelation: "simulations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       simulations: {
         Row: {
           boundary_conditions: Json
@@ -319,6 +433,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "simulations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          metrics: Json
+          model_type: string
+          organization_id: string
+          sample_count: number
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metrics?: Json
+          model_type: string
+          organization_id: string
+          sample_count?: number
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metrics?: Json
+          model_type?: string
+          organization_id?: string
+          sample_count?: number
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_jobs_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
