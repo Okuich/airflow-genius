@@ -22,6 +22,7 @@ export type {
   PipelineResult as ExecutionPipelineResult,
   GPUAllocation,
   AdaptiveTimeStep,
+  ConvergenceWarning,
   PipelineStage as ExecutionStage,
   StageResult as ExecutionStageResult,
 } from "./simulation-execution-pipeline";
