@@ -11,6 +11,7 @@ import Compliance from "./pages/Compliance";
 import MLPipeline from "./pages/MLPipeline";
 import ModelExplainability from "./pages/ModelExplainability";
 import SolverStatus from "./pages/SolverStatus";
+import CleanroomMetrics from "./pages/CleanroomMetrics";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -39,6 +40,7 @@ const AppRoutes = () => (
     <Route path="/ml-pipeline" element={<ProtectedRoute><MLPipeline /></ProtectedRoute>} />
     <Route path="/explainability" element={<ProtectedRoute><ModelExplainability /></ProtectedRoute>} />
     <Route path="/solver-status" element={<ProtectedRoute><SolverStatus /></ProtectedRoute>} />
+    <Route path="/cleanroom" element={<ProtectedRoute><CleanroomMetrics /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );

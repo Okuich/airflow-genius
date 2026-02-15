@@ -1,4 +1,4 @@
-import { Wind, BarChart3, Settings2, FolderOpen, Cpu, HelpCircle, LogOut, Eye, Shield, Brain, Microscope, Gauge } from "lucide-react";
+import { Wind, BarChart3, Settings2, FolderOpen, Cpu, HelpCircle, LogOut, Eye, Shield, Brain, Microscope, Gauge, Snowflake } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const NAV_ITEMS = [
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { icon: Brain, label: "ML Pipeline", href: "/ml-pipeline" },
   { icon: Microscope, label: "Explainability", href: "/explainability" },
   { icon: Gauge, label: "Solver Status", href: "/solver-status" },
+  { icon: Snowflake, label: "Cleanroom", href: "/cleanroom" },
   { icon: Cpu, label: "Solver Queue", href: "/" },
   { icon: Settings2, label: "Settings", href: "/" },
 ];
