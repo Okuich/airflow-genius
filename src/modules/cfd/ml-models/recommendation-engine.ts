@@ -12,20 +12,19 @@ import type {
 } from "@/packages/types";
 import { FeatureExtractor } from "./feature-extractor";
 import { DataNormalizer } from "./data-normalizer";
-import { SurrogateTrainer } from "./surrogate-trainer";
-import { ModelVersionManager } from "./model-version-manager";
+import { MLTrainingJob } from "./ml-training-job";
+import { ModelRegistry } from "./model-registry";
 
 export class RecommendationEngine {
   private readonly extractor = new FeatureExtractor();
   private readonly normalizer = new DataNormalizer();
-  private readonly trainer = new SurrogateTrainer();
-  private readonly versionManager: ModelVersionManager;
+  private readonly trainer = new MLTrainingJob();
+  private readonly registry: ModelRegistry;
 
-  constructor(versionManager?: ModelVersionManager) {
-    this.versionManager = versionManager ?? new ModelVersionManager();
+  constructor(registry?: ModelRegistry) {
+    this.registry = registry ?? new ModelRegistry();
   }
 
-  /** Predict all three targets for a given simulation config. */
   async predict(
     config: SimulationConfig,
     orgId: string
@@ -37,7 +36,7 @@ export class RecommendationEngine {
     const predictions: SurrogatePrediction[] = [];
 
     for (const modelType of modelTypes) {
-      const model = await this.versionManager.getActiveModel(orgId, modelType);
+      const model = await this.registry.getActiveModel(orgId, modelType);
       if (!model) continue;
 
       this.normalizer.loadParams(model.normalization);
@@ -56,7 +55,6 @@ export class RecommendationEngine {
     return predictions;
   }
 
-  /** Generate human-readable recommendations based on predictions. */
   async recommend(
     config: SimulationConfig,
     orgId: string
@@ -66,17 +64,13 @@ export class RecommendationEngine {
     const features = this.extractor.extract(config);
 
     for (const pred of predictions) {
-      if (pred.confidence < 0.3) continue; // too uncertain
-
+      if (pred.confidence < 0.3) continue;
       recommendations.push(...this.generateForPrediction(pred, features));
     }
 
-    // Sort by confidence descending
     recommendations.sort((a, b) => b.confidence - a.confidence);
     return recommendations;
   }
-
-  // ── Private ─────────────────────────────────────────────────────────
 
   private generateForPrediction(
     pred: SurrogatePrediction,
@@ -132,7 +126,7 @@ export class RecommendationEngine {
         break;
 
       case "efficiency":
-        if (pred.value < 1.5) { // mapping: 0=Poor, 1=Avg, 2=Good, 3=Excellent
+        if (pred.value < 1.5) {
           recs.push({
             type: "general",
             message: "Surrogate model predicts below-average efficiency. Review blade geometry and tip clearance.",

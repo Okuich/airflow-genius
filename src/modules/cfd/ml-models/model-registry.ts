@@ -1,4 +1,4 @@
-// ─── Step 6: Model Versioning ──────────────────────────────────────────────
+// ─── Step 6: Model Registry ────────────────────────────────────────────────
 // Manages surrogate model versions — local cache + DB sync.
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -19,7 +19,7 @@ interface CachedModels {
   syncedAt: string;
 }
 
-export class ModelVersionManager {
+export class ModelRegistry {
   private cache: Map<string, SurrogateModelVersion> = new Map();
 
   /** Get the active model for a given type and org. */

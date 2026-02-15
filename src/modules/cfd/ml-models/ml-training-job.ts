@@ -1,4 +1,4 @@
-// ─── Step 5: Surrogate Model Training ──────────────────────────────────────
+// ─── Step 5: ML Training Job ───────────────────────────────────────────────
 // Ordinary Least Squares linear regression trained entirely in-browser.
 // Lightweight, deterministic, no external dependencies.
 // ──────────────────────────────────────────────────────────────────────────
@@ -20,7 +20,7 @@ export interface TrainedModel {
   metrics: SurrogateModelMetrics;
 }
 
-export class SurrogateTrainer {
+export class MLTrainingJob {
   private readonly minSamples = 5;
 
   /** Train a linear regression model using OLS (normal equation). */

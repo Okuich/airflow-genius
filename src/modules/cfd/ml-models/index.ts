@@ -4,9 +4,9 @@
 
 export { SimulationEventBus } from "./simulation-event-bus";
 export { FeatureExtractor } from "./feature-extractor";
-export { DiagnosticLabeler } from "./diagnostic-labeler";
+export { DiagnosticClassifier } from "./diagnostic-classifier";
 export { DataNormalizer } from "./data-normalizer";
-export { SurrogateTrainer } from "./surrogate-trainer";
-export { ModelVersionManager } from "./model-version-manager";
+export { MLTrainingJob } from "./ml-training-job";
+export { ModelRegistry } from "./model-registry";
 export { RecommendationEngine } from "./recommendation-engine";
 export { SurrogatePipeline } from "./surrogate-pipeline";

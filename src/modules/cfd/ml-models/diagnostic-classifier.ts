@@ -1,4 +1,4 @@
-// ─── Step 3: Diagnostic Labeling ───────────────────────────────────────────
+// ─── Step 3: Diagnostic Classification ─────────────────────────────────────
 // Converts simulation results into numeric labels for supervised learning.
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -15,7 +15,7 @@ const EFFICIENCY_MAP: Record<EfficiencyRating, number> = {
   Excellent: 3,
 };
 
-export class DiagnosticLabeler {
+export class DiagnosticClassifier {
   /** Extract numeric labels from a simulation-completed event. */
   label(event: SimulationCompletedEvent): SimulationLabels {
     const r = event.results;
