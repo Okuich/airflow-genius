@@ -1,1 +1,4 @@
 project_id = "xryocgadrixcvchikmug"
+
+[functions.ml-pipeline-worker]
+verify_jwt = false
