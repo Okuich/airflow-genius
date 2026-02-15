@@ -68,6 +68,107 @@ export type Database = {
           },
         ]
       }
+      ml_model_versions: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          metrics: Json
+          model_type: string
+          normalization: Json
+          organization_id: string
+          training_sample_count: number
+          version: number
+          weights: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metrics?: Json
+          model_type: string
+          normalization?: Json
+          organization_id: string
+          training_sample_count?: number
+          version?: number
+          weights?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metrics?: Json
+          model_type?: string
+          normalization?: Json
+          organization_id?: string
+          training_sample_count?: number
+          version?: number
+          weights?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ml_model_versions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ml_training_data: {
+        Row: {
+          created_at: string
+          created_by: string
+          feature_version: string
+          features: Json
+          id: string
+          is_validated: boolean
+          labels: Json
+          organization_id: string
+          simulation_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          feature_version?: string
+          features?: Json
+          id?: string
+          is_validated?: boolean
+          labels?: Json
+          organization_id: string
+          simulation_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          feature_version?: string
+          features?: Json
+          id?: string
+          is_validated?: boolean
+          labels?: Json
+          organization_id?: string
+          simulation_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ml_training_data_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ml_training_data_simulation_id_fkey"
+            columns: ["simulation_id"]
+            isOneToOne: false
+            referencedRelation: "simulations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           id: string
