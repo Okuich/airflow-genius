@@ -7,6 +7,7 @@ import type { ComplianceRegion, ComplianceIndustry } from "@/components/complian
 import { RiskHeatmap } from "@/components/compliance/RiskHeatmap";
 import { AuditReportGenerator } from "@/components/compliance/AuditReportGenerator";
 import { ViolationExplorer } from "@/components/compliance/ViolationExplorer";
+import { RiskTrendPanel } from "@/components/compliance/RiskTrendPanel";
 import { AIComplianceAdvisor } from "@/components/compliance/AIComplianceAdvisor";
 import type { AirflowComplianceDomain } from "@/packages/types";
 
@@ -51,8 +52,10 @@ const Compliance = () => {
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             <RiskHeatmap domain={domain} metrics={metrics} />
-            <ViolationExplorer domain={domain} metrics={metrics} />
+            <RiskTrendPanel domain={domain} metrics={metrics} />
           </div>
+
+          <ViolationExplorer domain={domain} metrics={metrics} />
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             <AuditReportGenerator domain={domain} metrics={metrics} />
