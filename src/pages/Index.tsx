@@ -5,6 +5,7 @@ import { MetricCard } from "@/components/cfd/MetricCard";
 import { ResidualChart } from "@/components/cfd/ResidualChart";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { AiAssistantPanel } from "@/components/cfd/AiAssistantPanel";
+import type { SimulationContext } from "@/components/cfd/ai-chat-types";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -13,6 +14,19 @@ const Index = () => {
   const metrics = getMockMetrics();
   const activeSim = simulations.find((s) => s.status === "solving");
   const [showAi, setShowAi] = useState(false);
+
+  const simContext: SimulationContext | undefined = activeSim
+    ? {
+        simulationId: activeSim.id,
+        name: activeSim.name,
+        status: activeSim.status,
+        turbulenceModel: activeSim.solverConfig.turbulenceModel,
+        cellCount: activeSim.cellCount,
+        currentIteration: activeSim.currentIteration,
+        maxIterations: activeSim.solverConfig.maxIterations,
+        relaxationFactors: activeSim.solverConfig.relaxationFactors,
+      }
+    : undefined;
 
   return (
     <div className="flex h-screen overflow-hidden dark">
@@ -89,7 +103,7 @@ const Index = () => {
       </main>
 
       {/* AI Assistant Panel */}
-      {showAi && <AiAssistantPanel onClose={() => setShowAi(false)} />}
+      {showAi && <AiAssistantPanel onClose={() => setShowAi(false)} simulationContext={simContext} />}
     </div>
   );
 };
