@@ -28,6 +28,7 @@ export enum FlowType {
   ExhaustVentilation = "exhaust_ventilation",
   BuoyancyDriven = "buoyancy_driven",
   AgricultureVentilation = "agriculture_ventilation",
+  DataCenterCooling = "data_center_cooling",
 }
 
 export enum TurbulenceType {
@@ -447,6 +448,140 @@ export interface DataCenterMetrics {
   airflowContainmentScore: number;
   /** Predicted Power Usage Effectiveness impact (≥1.0, lower is better). */
   predictedPUEImpact: number;
+}
+
+// ── Data Center Airflow ────────────────────────────────────────────────────
+
+export interface RackHeatLoadModel {
+  /** Total IT load in kW. */
+  totalITLoad: number;
+  /** Per-rack heat dissipation in kW. */
+  rackLoads: RackLoad[];
+  /** Supply air temperature in °C. */
+  supplyAirTemperature: number;
+  /** Return air temperature threshold in °C. */
+  returnAirThreshold: number;
+  /** Hotspot temperature threshold in °C above return air average. */
+  hotspotThreshold: number;
+}
+
+export interface RackLoad {
+  /** Rack identifier. */
+  id: string;
+  /** Rack name / label. */
+  name: string;
+  /** IT heat load in kW. */
+  heatLoad: number;
+  /** Rack height in U (rack units). */
+  rackUnits: number;
+  /** Airflow demand in m³/s. */
+  airflowDemand: number;
+  /** Position in data hall (row, column). */
+  position: { row: number; column: number };
+}
+
+export interface ContainmentConfig {
+  /** Hot/cold aisle containment type. */
+  type: "hot-aisle" | "cold-aisle" | "chimney" | "none";
+  /** Blanking panel coverage fraction (0–1). */
+  blankingPanelCoverage: number;
+  /** Cable cutout seal fraction (0–1). */
+  cableCutoutSealFraction: number;
+  /** Above-rack gap in meters. */
+  aboveRackGap: number;
+  /** End-of-row door seal quality (0–1). */
+  doorSealQuality: number;
+}
+
+export interface DataCenterSimulationConfig extends SimulationConfig {
+  /** Rack heat load model. */
+  rackHeatLoad: RackHeatLoadModel;
+  /** Containment configuration. */
+  containment: ContainmentConfig;
+  /** Raised floor plenum depth in meters (0 if no raised floor). */
+  raisedFloorDepth: number;
+  /** Tile open area fraction (0–1) for perforated tiles. */
+  tileOpenAreaFraction: number;
+  /** CRAC/CRAH unit count. */
+  coolingUnitCount: number;
+  /** Total cooling capacity in kW. */
+  totalCoolingCapacity: number;
+  /** Target PUE for benchmarking. */
+  targetPUE: number;
+}
+
+export interface HotspotAssessment {
+  /** Total number of rack hotspots detected. */
+  hotspotCount: number;
+  /** Per-rack temperature analysis. */
+  rackTemperatures: RackTemperature[];
+  /** Racks exceeding temperature threshold. */
+  criticalRacks: string[];
+  /** Overall thermal risk level. */
+  thermalRisk: "safe" | "caution" | "warning" | "critical";
+  /** Recommendations to resolve hotspots. */
+  mitigations: string[];
+}
+
+export interface RackTemperature {
+  rackId: string;
+  rackName: string;
+  /** Inlet air temperature in °C. */
+  inletTemperature: number;
+  /** Exhaust air temperature in °C. */
+  exhaustTemperature: number;
+  /** Temperature delta across rack in °C. */
+  deltaT: number;
+  /** Is this rack a hotspot. */
+  isHotspot: boolean;
+}
+
+export interface ContainmentAssessment {
+  /** Airflow containment score (0–1). */
+  containmentScore: number;
+  /** Leak sources detected. */
+  leakSources: LeakSource[];
+  /** Bypass air fraction (air that doesn't pass through IT equipment). */
+  bypassAirFraction: number;
+  /** Recirculation fraction (hot air re-entering cold aisle). */
+  recirculationFraction: number;
+  /** Recommendations. */
+  mitigations: string[];
+}
+
+export interface LeakSource {
+  /** Location description. */
+  location: string;
+  /** Leak severity (0–1). */
+  severity: number;
+  /** Estimated air leakage in m³/s. */
+  leakageRate: number;
+  /** Fix category. */
+  fixCategory: "blanking_panel" | "cable_cutout" | "door_seal" | "above_rack" | "floor_tile";
+}
+
+export interface PUEEstimate {
+  /** Estimated PUE value. */
+  estimatedPUE: number;
+  /** PUE breakdown by component. */
+  breakdown: PUEBreakdown;
+  /** Comparison to target. */
+  pueVsTarget: number;
+  /** Efficiency class. */
+  efficiencyClass: "excellent" | "good" | "average" | "poor";
+  /** Improvement recommendations. */
+  recommendations: string[];
+}
+
+export interface PUEBreakdown {
+  /** IT equipment power fraction. */
+  itLoad: number;
+  /** Cooling system power fraction. */
+  coolingOverhead: number;
+  /** Fan / air movement power fraction. */
+  airMovementOverhead: number;
+  /** Lighting and other overhead fraction. */
+  otherOverhead: number;
 }
 
 // ── Agricultural Ventilation ────────────────────────────────────────────────

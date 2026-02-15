@@ -25,6 +25,7 @@ export type GeometryCluster =
   | "cleanroom"
   | "exhaust-system"
   | "agriculture-ventilation"
+  | "data-center"
   | "generic";
 
 export interface BenchmarkReport {
@@ -128,6 +129,9 @@ export class BenchmarkEngine {
 
   /** Deterministic geometry classification based on config features. */
   classifyGeometry(config: SimulationConfig): GeometryCluster {
+    // Data center: has rack heat load or data center cooling flow
+    if (this.isDataCenterConfig(config)) return "data-center";
+
     // Agriculture ventilation: has multi-zone model or agriculture flow type
     if (this.isAgricultureConfig(config)) return "agriculture-ventilation";
 
@@ -198,6 +202,14 @@ export class BenchmarkEngine {
       "multiZoneModel" in config ||
       "moistureTransport" in config ||
       config.flowType === FlowType.AgricultureVentilation
+    );
+  }
+
+  private isDataCenterConfig(config: SimulationConfig): boolean {
+    return (
+      "rackHeatLoad" in config ||
+      "containment" in config ||
+      config.flowType === FlowType.DataCenterCooling
     );
   }
 
@@ -464,6 +476,22 @@ export class BenchmarkEngine {
           category: "convergence",
           message: `Buoyancy-driven flows in livestock buildings often converge slowly — consider pseudo-transient stepping or lower relaxation factors.`,
           relevance: 0.8,
+        });
+      }
+    }
+
+    // Data-center-specific insights
+    if (cluster === "data-center") {
+      insights.push({
+        category: "efficiency",
+        message: `Data center simulation detected. Rack hotspot elimination and containment optimization are critical for PUE reduction.`,
+        relevance: 0.85,
+      });
+      if (features.meshQualityScore < 0.6) {
+        insights.push({
+          category: "mesh",
+          message: `Mesh quality may be insufficient for capturing rack-level thermal plumes — refine mesh around server exhaust faces and above-rack gaps.`,
+          relevance: 0.9,
         });
       }
     }
