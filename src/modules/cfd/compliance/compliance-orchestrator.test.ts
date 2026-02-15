@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ComplianceOrchestrator } from "./compliance-orchestrator";
+import { ComplianceOrchestrator } from "@/packages/compliance-engine";
 
 describe("ComplianceOrchestrator", () => {
   const orchestrator = new ComplianceOrchestrator();

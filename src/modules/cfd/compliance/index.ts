@@ -1,9 +1,11 @@
 // ─── Compliance Pipeline ────────────────────────────────────────────────────
-// Simulation Results → Rules → Standards → Risk → Audit Doc → AI Advisor
+// Re-exports from packages/compliance-engine for backward compatibility.
 // ──────────────────────────────────────────────────────────────────────────
 
-export { ComplianceRulesEngine } from "./compliance-rules-engine";
-export { StandardMappingEngine } from "./standard-mapping-engine";
-export { RiskScoringEngine } from "./risk-scoring-engine";
-export { AuditDocumentGenerator } from "./audit-doc-generator";
-export { ComplianceOrchestrator } from "./compliance-orchestrator";
+export {
+  ComplianceRulesEngine,
+  StandardMappingEngine,
+  RiskScoringEngine,
+  AuditDocumentGenerator,
+  ComplianceOrchestrator,
+} from "@/packages/compliance-engine";
