@@ -16,6 +16,9 @@ import type {
   BoundaryType,
   MeshStats,
   ResidualData,
+  CleanroomSimulationConfig,
+  ParticleDispersionMetrics,
+  CleanroomMetrics,
 } from "@/packages/types";
 import { FlowType, TurbulenceType } from "@/packages/types";
 
@@ -248,7 +251,7 @@ export class FeatureExtractor {
       boundaryLayerCount: config.meshSettings.boundaryLayerCount,
       boundaryLayerGrowthRate: config.meshSettings.boundaryLayerGrowthRate,
       qualityThreshold: config.meshSettings.qualityThreshold,
-      flowType: config.flowType === FlowType.Steady ? 0 : 1,
+      flowType: this.encodeFlowType(config.flowType),
       turbulenceModel: TURBULENCE_INDEX[config.turbulenceModel.type] ?? 0,
       maxIterations: config.solverSettings.maxIterations,
       convergenceCriteria: config.solverSettings.convergenceCriteria,
@@ -268,6 +271,51 @@ export class FeatureExtractor {
     };
   }
 
+  // ── Cleanroom / Particle Dispersion Features ────────────────────────
+
+  /**
+   * Extract particle-dispersion-specific features from cleanroom simulation results.
+   * Returns null if the config is not a cleanroom simulation.
+   */
+  extractCleanroomFeatures(
+    config: SimulationConfig,
+    dispersion?: ParticleDispersionMetrics,
+    cleanroom?: CleanroomMetrics
+  ): CleanroomFeatureSet | null {
+    if (!isCleanroomConfig(config)) return null;
+    const cr = config as CleanroomSimulationConfig;
+
+    return {
+      particleDiameter: cr.particleTransport.particleDiameter,
+      particleDensity: cr.particleTransport.particleDensity,
+      parcelCount: cr.particleTransport.parcelCount,
+      gravitySedimentation: cr.particleTransport.gravitySedimentation ? 1 : 0,
+      brownianDiffusion: cr.particleTransport.brownianDiffusion ? 1 : 0,
+      roomVolume: cr.roomVolume,
+      filterFaceVelocity: cr.filterFaceVelocity,
+      targetISOClass: isoClassToNumeric(cr.targetISOClass),
+      airChangeRate: cleanroom?.airChangeRate ?? 0,
+      particleRetentionRate: cleanroom?.particleRetentionRate ?? 0,
+      laminarStabilityScore: cleanroom?.laminarStabilityScore ?? 0,
+      meanResidenceTime: dispersion?.meanResidenceTime ?? 0,
+      removalEfficiency: dispersion?.removalEfficiency ?? 0,
+      peakConcentration: dispersion?.peakConcentration ?? 0,
+      uniformityIndex: dispersion?.uniformityIndex ?? 0,
+    };
+  }
+
+  /** Encode FlowType to a numeric value for the feature vector. */
+  private encodeFlowType(ft: FlowType): number {
+    switch (ft) {
+      case FlowType.Steady: return 0;
+      case FlowType.Transient: return 1;
+      case FlowType.LaminarFlowValidation: return 2;
+      case FlowType.ParticleDispersion: return 3;
+      case FlowType.ContaminantDecay: return 4;
+      default: return 0;
+    }
+  }
+
   /** Extract from a completed-event payload (convenience). */
   extractFromEvent(event: SimulationCompletedEvent): SimulationFeatureVector {
     return this.extract(event.config);
@@ -283,4 +331,33 @@ export class FeatureExtractor {
 
 function clamp01(v: number): number {
   return Math.max(0, Math.min(1, v));
+}
+
+// ── Cleanroom Helpers ─────────────────────────────────────────────────────
+
+export interface CleanroomFeatureSet {
+  particleDiameter: number;
+  particleDensity: number;
+  parcelCount: number;
+  gravitySedimentation: number;
+  brownianDiffusion: number;
+  roomVolume: number;
+  filterFaceVelocity: number;
+  targetISOClass: number;
+  airChangeRate: number;
+  particleRetentionRate: number;
+  laminarStabilityScore: number;
+  meanResidenceTime: number;
+  removalEfficiency: number;
+  peakConcentration: number;
+  uniformityIndex: number;
+}
+
+function isCleanroomConfig(config: SimulationConfig): config is CleanroomSimulationConfig {
+  return "particleTransport" in config && "roomVolume" in config;
+}
+
+function isoClassToNumeric(iso: string): number {
+  const match = iso.match(/(\d+)/);
+  return match ? parseInt(match[1], 10) : 7;
 }

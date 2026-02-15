@@ -74,6 +74,12 @@ const KNOWLEDGE_BASE: KnowledgePattern[] = [
     diagnosticChecks: [DiagnosticCheck.CourantNumber, DiagnosticCheck.ResidualTrend],
     commonActions: [ActionType.SetComputeLimit, ActionType.ReduceTimeStep, ActionType.AdjustMesh],
   },
+  {
+    intent: IntentCategory.ContaminationDiagnostic,
+    keywords: ["contamination", "particle", "cleanroom", "iso class", "iso 14644", "retention", "dispersion", "decay", "laminar flow", "hepa", "air change", "recovery time"],
+    diagnosticChecks: [DiagnosticCheck.ParticleResidenceTime, DiagnosticCheck.ContaminantDecayRate, DiagnosticCheck.ISOClassCompliance, DiagnosticCheck.LaminarCoverage],
+    commonActions: [ActionType.AdjustParticleTransport, ActionType.RefineCleanroomMesh, ActionType.ProvideExplanation],
+  },
 ];
 
 // ─── Agent Implementation ───────────────────────────────────────────────────
@@ -426,6 +432,10 @@ export class CFDAIAgent {
       [DiagnosticCheck.BoundaryConsistency]: () => ({ check, passed: false, value: null, threshold: "All BCs physically consistent", severity: Severity.High, detail: "Outlet pressure lower than inlet static — potential backflow" }),
       [DiagnosticCheck.ReferenceValues]: () => ({ check, passed: true, value: null, threshold: "Consistent with fluid properties", severity: Severity.Low, detail: "Reference pressure and temperature consistent" }),
       [DiagnosticCheck.TurbulenceRatio]: () => ({ check, passed: true, value: 12, threshold: "1-100", severity: Severity.Low, detail: "Turbulent viscosity ratio 12 — within range" }),
+      [DiagnosticCheck.ParticleResidenceTime]: () => ({ check, passed: false, value: 45, threshold: "< 30s for ISO 5", severity: Severity.Medium, detail: "Mean particle residence time 45s exceeds target — check outlet placement and air change rate" }),
+      [DiagnosticCheck.ContaminantDecayRate]: () => ({ check, passed: true, value: 0.92, threshold: "R² > 0.85", severity: Severity.Low, detail: "Contaminant decay fit R² = 0.92 — good exponential fit" }),
+      [DiagnosticCheck.ISOClassCompliance]: () => ({ check, passed: false, value: "ISO 6", threshold: "ISO 5", severity: Severity.High, detail: "Estimated ISO class 6 exceeds target ISO 5 — particle retention rate insufficient" }),
+      [DiagnosticCheck.LaminarCoverage]: () => ({ check, passed: true, value: 0.87, threshold: "> 0.80", severity: Severity.Low, detail: "Laminar coverage 87% — meets unidirectional flow requirement" }),
     };
 
     return checkTemplates[check]();
@@ -517,6 +527,8 @@ export class CFDAIAgent {
       [ActionType.ApplyCredit]: "Apply compute credit to user account",
       [ActionType.SetComputeLimit]: "Configure compute usage alerts and hard limits",
       [ActionType.RestartSolver]: "Restart solver with adjusted parameters",
+      [ActionType.AdjustParticleTransport]: "Adjust particle transport model parameters (parcel count, wall interaction, injection surfaces)",
+      [ActionType.RefineCleanroomMesh]: "Refine mesh near HEPA filter faces, injection surfaces, and critical zones for particle tracking accuracy",
     };
     return descriptions[type];
   }
@@ -538,6 +550,8 @@ export class CFDAIAgent {
       [ActionType.ApplyCredit]: {},
       [ActionType.SetComputeLimit]: { warningThresholdPercent: 80, hardLimitPercent: 100 },
       [ActionType.RestartSolver]: { fromIteration: 0 },
+      [ActionType.AdjustParticleTransport]: { increaseParcelCount: true, wallInteraction: "reflect" },
+      [ActionType.RefineCleanroomMesh]: { targetRefinementLevels: 3, nearFilterRefinement: true },
     };
     return paramMap[type] ?? {};
   }
@@ -555,6 +569,8 @@ export class CFDAIAgent {
       [ActionType.ApplyCredit]: "Refunds compute hours to account balance",
       [ActionType.SetComputeLimit]: "Prevents unexpected compute overages",
       [ActionType.RestartSolver]: "Fresh start with adjusted parameters",
+      [ActionType.AdjustParticleTransport]: "Improves particle tracking accuracy and residence time prediction",
+      [ActionType.RefineCleanroomMesh]: "Captures near-wall particle dynamics and HEPA filter flow distribution",
     };
     return impacts[type];
   }

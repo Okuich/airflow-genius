@@ -10,7 +10,10 @@ import type {
   FeatureVector,
   MeshStats,
   EfficiencyRating,
+  CleanroomMetrics,
+  CleanroomSimulationConfig,
 } from "@/packages/types";
+import { FlowType } from "@/packages/types";
 
 // ── Public Types ──────────────────────────────────────────────────────────
 
@@ -19,6 +22,7 @@ export type GeometryCluster =
   | "external-flow"
   | "rotating-machinery"
   | "heat-exchanger"
+  | "cleanroom"
   | "generic";
 
 export interface BenchmarkReport {
@@ -81,6 +85,20 @@ export interface BenchmarkEntry {
   converged: boolean;
   totalIterations: number;
   timestamp: string;
+  cleanroomMetrics?: CleanroomMetrics;
+}
+
+export interface ISOClassDistribution {
+  isoClass: string;
+  count: number;
+  percentile: number;
+}
+
+export interface CleanroomBenchmarkReport extends DetailedBenchmarkReport {
+  isoClassDistribution: ISOClassDistribution[];
+  avgAirChangeRate: number;
+  avgParticleRetentionRate: number;
+  avgLaminarStabilityScore: number;
 }
 
 // ── Engine ────────────────────────────────────────────────────────────────
@@ -108,6 +126,9 @@ export class BenchmarkEngine {
 
   /** Deterministic geometry classification based on config features. */
   classifyGeometry(config: SimulationConfig): GeometryCluster {
+    // Cleanroom: has particle transport or cleanroom flow types
+    if (this.isCleanroomConfig(config)) return "cleanroom";
+
     // Rotating machinery: has rotating frame or rotating walls
     if (config.rotatingFrame?.enabled) return "rotating-machinery";
     const hasRotatingWall = config.boundaryConditions.some(
@@ -144,6 +165,15 @@ export class BenchmarkEngine {
     if (hasSymmetry) return "external-flow";
 
     return "generic";
+  }
+
+  private isCleanroomConfig(config: SimulationConfig): boolean {
+    return (
+      "particleTransport" in config ||
+      config.flowType === FlowType.ParticleDispersion ||
+      config.flowType === FlowType.ContaminantDecay ||
+      config.flowType === FlowType.LaminarFlowValidation
+    );
   }
 
   /** Get all entries in a given geometry cluster. */
@@ -381,6 +411,22 @@ export class BenchmarkEngine {
       });
     }
 
+    // Cleanroom-specific insights
+    if (cluster === "cleanroom") {
+      insights.push({
+        category: "efficiency",
+        message: `Cleanroom simulation detected. Ensure HEPA filter face velocity is modelled accurately; ±5% deviation can shift ISO class estimates.`,
+        relevance: 0.85,
+      });
+      if (features.meshQualityScore < 0.6) {
+        insights.push({
+          category: "mesh",
+          message: `Mesh quality may be insufficient for particle tracking — sub-micron particles require fine mesh near injection surfaces and walls.`,
+          relevance: 0.9,
+        });
+      }
+    }
+
     // Sort by relevance
     insights.sort((a, b) => b.relevance - a.relevance);
     return insights;
@@ -407,4 +453,58 @@ export class BenchmarkEngine {
       0.1 * pdNorm;
     return Math.round(Math.max(0, Math.min(1, score)) * 10000) / 10000;
   }
+
+  // ════════════════════════════════════════════════════════════════════
+  //  ISO Class Clustering (Cleanroom)
+  // ════════════════════════════════════════════════════════════════════
+
+  /** Generate a cleanroom-specific benchmark report with ISO class distribution. */
+  cleanroomReport(
+    config: SimulationConfig,
+    features: FeatureVector,
+    meshStats: MeshStats
+  ): CleanroomBenchmarkReport {
+    const base = this.detailedReport(config, features, meshStats);
+    const pool = this.getCluster("cleanroom");
+
+    const isoClassDistribution = this.computeISOClassDistribution(pool);
+
+    const cleanroomEntries = pool.filter((e) => e.cleanroomMetrics);
+    const avgAirChangeRate = this.avg(cleanroomEntries.map((e) => e.cleanroomMetrics!.airChangeRate));
+    const avgParticleRetentionRate = this.avg(cleanroomEntries.map((e) => e.cleanroomMetrics!.particleRetentionRate));
+    const avgLaminarStabilityScore = this.avg(cleanroomEntries.map((e) => e.cleanroomMetrics!.laminarStabilityScore));
+
+    return {
+      ...base,
+      isoClassDistribution,
+      avgAirChangeRate: round4(avgAirChangeRate),
+      avgParticleRetentionRate: round4(avgParticleRetentionRate),
+      avgLaminarStabilityScore: round4(avgLaminarStabilityScore),
+    };
+  }
+
+  private computeISOClassDistribution(pool: BenchmarkEntry[]): ISOClassDistribution[] {
+    const counts = new Map<string, number>();
+    for (const e of pool) {
+      const iso = e.cleanroomMetrics?.isoClassEstimate ?? "unknown";
+      counts.set(iso, (counts.get(iso) ?? 0) + 1);
+    }
+
+    const total = pool.length || 1;
+    return [...counts.entries()]
+      .map(([isoClass, count]) => ({
+        isoClass,
+        count,
+        percentile: round4((count / total) * 100),
+      }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  private avg(values: number[]): number {
+    return values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+  }
+}
+
+function round4(v: number): number {
+  return Math.round(v * 1e4) / 1e4;
 }

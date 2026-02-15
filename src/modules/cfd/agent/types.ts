@@ -8,6 +8,7 @@ export enum IntentCategory {
   PerformanceInterpretation = "performance_interpretation",
   BillingDispute = "billing_dispute",
   ComputeOverrun = "compute_overrun",
+  ContaminationDiagnostic = "contamination_diagnostic",
   GeneralQuestion = "general_question",
   SimulationSetup = "simulation_setup",
   Unknown = "unknown",
@@ -32,6 +33,8 @@ export enum ActionType {
   ApplyCredit = "apply_credit",
   SetComputeLimit = "set_compute_limit",
   RestartSolver = "restart_solver",
+  AdjustParticleTransport = "adjust_particle_transport",
+  RefineCleanroomMesh = "refine_cleanroom_mesh",
 }
 
 export enum DiagnosticCheck {
@@ -45,6 +48,10 @@ export enum DiagnosticCheck {
   BoundaryConsistency = "boundary_consistency",
   ReferenceValues = "reference_values",
   TurbulenceRatio = "turbulence_ratio",
+  ParticleResidenceTime = "particle_residence_time",
+  ContaminantDecayRate = "contaminant_decay_rate",
+  ISOClassCompliance = "iso_class_compliance",
+  LaminarCoverage = "laminar_coverage",
 }
 
 export enum PlanStatus {

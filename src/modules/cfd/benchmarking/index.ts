@@ -6,6 +6,8 @@ export { BenchmarkEngine } from "./benchmark-engine";
 export type {
   BenchmarkReport,
   DetailedBenchmarkReport,
+  CleanroomBenchmarkReport,
+  ISOClassDistribution,
   BenchmarkEntry,
   BenchmarkMetrics,
   MetricStats,
