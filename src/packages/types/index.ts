@@ -308,6 +308,17 @@ export interface ContaminantDecayResult {
   concentrationTimeSeries: { time: number; concentration: number }[];
 }
 
+export interface ExhaustSystemMetrics {
+  /** Hood face capture velocity in m/s. */
+  captureVelocity: number;
+  /** Fraction of contaminant mass removed by the exhaust (0–1). */
+  contaminantRemovalEfficiency: number;
+  /** Stability of negative pressure in the enclosure (0–1, 1 = perfectly stable). */
+  negativePressureStability: number;
+  /** Risk score for backflow at exhaust openings (0–1, 0 = no risk). */
+  backflowRiskScore: number;
+}
+
 export interface HumanReadableSummary {
   keyFindings: string[];
   pressureLossEstimate: number;
