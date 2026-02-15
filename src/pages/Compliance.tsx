@@ -6,6 +6,7 @@ import { ComplianceFilters } from "@/components/compliance/ComplianceFilters";
 import type { ComplianceRegion, ComplianceIndustry } from "@/components/compliance/ComplianceFilters";
 import { RiskHeatmap } from "@/components/compliance/RiskHeatmap";
 import { AuditReportGenerator } from "@/components/compliance/AuditReportGenerator";
+import { ComplianceExportPanel } from "@/components/compliance/ComplianceExportPanel";
 import { AgricultureExportPanel } from "@/components/compliance/AgricultureExportPanel";
 import { ViolationExplorer } from "@/components/compliance/ViolationExplorer";
 import { RiskTrendPanel } from "@/components/compliance/RiskTrendPanel";
@@ -58,8 +59,9 @@ const Compliance = () => {
 
           <ViolationExplorer domain={domain} metrics={metrics} />
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <AuditReportGenerator domain={domain} metrics={metrics} />
+            <ComplianceExportPanel domain={domain} metrics={metrics} />
             <AIComplianceAdvisor domain={domain} metrics={metrics} />
           </div>
 
