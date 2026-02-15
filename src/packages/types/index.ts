@@ -569,6 +569,30 @@ export interface BillingThresholdExceededEvent {
   timestamp: string;
 }
 
+export interface FeatureVectorCreatedEvent {
+  organizationId: string;
+  simulationId: string | null;
+  featureStoreEntryId: string;
+  geometryCluster: string;
+  timestamp: string;
+}
+
+export interface TrainingThresholdReachedEvent {
+  organizationId: string;
+  pendingCount: number;
+  threshold: number;
+  modelTypes: SurrogateModelType[];
+  timestamp: string;
+}
+
+export interface TrainingJobLaunchedEvent {
+  organizationId: string;
+  jobId: string;
+  modelType: SurrogateModelType;
+  sampleCount: number;
+  timestamp: string;
+}
+
 /** Map of all platform event names to their payload types. */
 export interface PlatformEventMap {
   "simulation.submitted": SimulationSubmittedEvent;
@@ -577,6 +601,9 @@ export interface PlatformEventMap {
   "diagnostic.generated": DiagnosticGeneratedEvent;
   "model.updated": ModelUpdatedEvent;
   "billing.threshold_exceeded": BillingThresholdExceededEvent;
+  "feature.created": FeatureVectorCreatedEvent;
+  "training.threshold_reached": TrainingThresholdReachedEvent;
+  "training.job_launched": TrainingJobLaunchedEvent;
 }
 
 /** Union of all event names. */
