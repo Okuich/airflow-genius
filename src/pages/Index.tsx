@@ -6,6 +6,7 @@ import { ResidualChart } from "@/components/cfd/ResidualChart";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { AiAssistantPanel } from "@/components/cfd/AiAssistantPanel";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const simulations = getMockSimulations();
@@ -32,10 +33,10 @@ const Index = () => {
               <MessageSquare className="w-4 h-4 text-data-cyan" />
               AI Agent
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity text-sm font-medium">
+            <Link to="/builder" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity text-sm font-medium">
               <Plus className="w-4 h-4" />
               New Simulation
-            </button>
+            </Link>
           </div>
         </header>
 
