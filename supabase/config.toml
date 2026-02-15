@@ -11,3 +11,12 @@ verify_jwt = false
 
 [functions.compliance-sync]
 verify_jwt = false
+
+[functions.agent-diagnose]
+verify_jwt = false
+
+[functions.agent-message]
+verify_jwt = false
+
+[functions.agent-execute-plan]
+verify_jwt = false

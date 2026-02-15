@@ -3,6 +3,35 @@ import { generateMessageId, extractActions } from "./ai-chat-types";
 
 const AGENT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/agent-message`;
 const EXECUTE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/agent-execute-plan`;
+const DIAGNOSE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/agent-diagnose`;
+
+// ─── Diagnostic Types ───────────────────────────────────────────────────────
+
+export interface DiagnosticIssue {
+  id: string;
+  category: "convergence" | "mesh" | "solver" | "turbulence" | "boundary" | "performance";
+  severity: "ok" | "info" | "warning" | "critical";
+  title: string;
+  detail: string;
+  autoFixAvailable: boolean;
+  fix?: {
+    description: string;
+    action: string;
+    parameters?: Record<string, unknown>;
+    expectedImprovement: string;
+  };
+}
+
+export interface DiagnosticReport {
+  overallHealth: "healthy" | "warning" | "critical";
+  confidence: number;
+  summary: string;
+  issues: DiagnosticIssue[];
+  quickWins: string[];
+  estimatedResolutionConfidence: number;
+}
+
+// ─── Streaming Infrastructure ───────────────────────────────────────────────
 
 interface StreamChatOptions {
   messages: { role: string; content: string }[];
@@ -102,6 +131,8 @@ async function streamFromEndpoint(
   opts.onDone(fullContent);
 }
 
+// ─── Public API ─────────────────────────────────────────────────────────────
+
 export async function streamAgentMessage(opts: StreamChatOptions) {
   return streamFromEndpoint(
     AGENT_URL,
@@ -126,6 +157,28 @@ export async function streamExecutePlan(
     { planId, actions, simulationId, simulationContext },
     opts
   );
+}
+
+export async function runAutoDiagnosis(
+  simulationContext: Record<string, unknown>,
+  signal?: AbortSignal
+): Promise<DiagnosticReport> {
+  const resp = await fetch(DIAGNOSE_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify({ simulationContext }),
+    signal,
+  });
+
+  if (!resp.ok) {
+    const errBody = await resp.json().catch(() => ({ error: "Diagnosis failed" }));
+    throw new Error(errBody.error || `Error ${resp.status}`);
+  }
+
+  return resp.json();
 }
 
 export { generateMessageId, extractActions };
