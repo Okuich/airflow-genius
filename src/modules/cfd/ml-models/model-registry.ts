@@ -1,5 +1,6 @@
 // ─── Step 6: Model Registry ────────────────────────────────────────────────
-// Manages surrogate model versions — local cache + DB sync.
+// CFD-domain facade over packages/model-registry.
+// Adds localStorage caching on top of the platform-agnostic interface.
 // ──────────────────────────────────────────────────────────────────────────
 
 import type {
@@ -9,8 +10,8 @@ import type {
   SurrogateModelMetrics,
   NormalizationParams,
 } from "@/packages/types";
-import type { Json } from "@/integrations/supabase/types";
-import { supabase } from "@/integrations/supabase/client";
+import type { IModelRegistry, ModelVersion } from "@/packages/model-registry";
+import { SupabaseModelRegistry } from "@/packages/model-registry";
 
 const LOCAL_CACHE_KEY = "flowforge_ml_models";
 
@@ -19,46 +20,51 @@ interface CachedModels {
   syncedAt: string;
 }
 
-export class ModelRegistry {
-  private cache: Map<string, SurrogateModelVersion> = new Map();
+function versionToLegacy(v: ModelVersion): SurrogateModelVersion {
+  return {
+    id: v.id,
+    organizationId: v.organizationId,
+    modelType: v.modelType,
+    version: v.version,
+    weights: v.weights,
+    normalization: v.normalization,
+    metrics: v.metrics,
+    isActive: v.isActive,
+    createdAt: v.createdAt,
+  };
+}
 
-  /** Get the active model for a given type and org. */
+export class ModelRegistry {
+  private readonly inner: IModelRegistry;
+  private localCache = new Map<string, SurrogateModelVersion>();
+
+  constructor(inner?: IModelRegistry) {
+    this.inner = inner ?? new SupabaseModelRegistry();
+  }
+
   async getActiveModel(
     orgId: string,
     modelType: SurrogateModelType
   ): Promise<SurrogateModelVersion | null> {
     const cacheKey = `${orgId}:${modelType}`;
-
-    // Check in-memory cache first
-    if (this.cache.has(cacheKey)) return this.cache.get(cacheKey)!;
+    if (this.localCache.has(cacheKey)) return this.localCache.get(cacheKey)!;
 
     // Check localStorage
     const local = this.loadFromLocal(orgId, modelType);
     if (local) {
-      this.cache.set(cacheKey, local);
+      this.localCache.set(cacheKey, local);
       return local;
     }
 
-    // Fetch from DB
-    const { data, error } = await supabase
-      .from("ml_model_versions")
-      .select("*")
-      .eq("organization_id", orgId)
-      .eq("model_type", modelType)
-      .eq("is_active", true)
-      .order("version", { ascending: false })
-      .limit(1)
-      .single();
+    const result = await this.inner.getActiveModel(orgId, modelType);
+    if (!result) return null;
 
-    if (error || !data) return null;
-
-    const model = this.rowToModel(data);
-    this.cache.set(cacheKey, model);
+    const model = versionToLegacy(result);
+    this.localCache.set(cacheKey, model);
     this.saveToLocal(orgId, model);
     return model;
   }
 
-  /** Save a new model version (increments version number). */
   async saveVersion(
     orgId: string,
     modelType: SurrogateModelType,
@@ -66,61 +72,27 @@ export class ModelRegistry {
     normalization: NormalizationParams,
     metrics: SurrogateModelMetrics
   ): Promise<SurrogateModelVersion> {
-    // Get current max version
-    const { data: existing } = await supabase
-      .from("ml_model_versions")
-      .select("version")
-      .eq("organization_id", orgId)
-      .eq("model_type", modelType)
-      .order("version", { ascending: false })
-      .limit(1);
+    const result = await this.inner.saveVersion({
+      organizationId: orgId,
+      modelType,
+      weights,
+      normalization,
+      metrics,
+    });
 
-    const nextVersion = (existing?.[0]?.version ?? 0) + 1;
-
-    // Deactivate previous versions
-    await supabase
-      .from("ml_model_versions")
-      .update({ is_active: false } as Record<string, unknown>)
-      .eq("organization_id", orgId)
-      .eq("model_type", modelType);
-
-    // Insert new version
-    const { data, error } = await supabase
-      .from("ml_model_versions")
-      .insert([{
-        organization_id: orgId,
-        model_type: modelType,
-        version: nextVersion,
-        weights: JSON.parse(JSON.stringify(weights)) as Json,
-        normalization: JSON.parse(JSON.stringify(normalization)) as Json,
-        metrics: JSON.parse(JSON.stringify(metrics)) as Json,
-        training_sample_count: metrics.sampleCount,
-        is_active: true,
-      }])
-      .select()
-      .single();
-
-    if (error) throw new Error(`Failed to save model version: ${error.message}`);
-
-    const model = this.rowToModel(data);
+    const model = versionToLegacy(result);
     const cacheKey = `${orgId}:${modelType}`;
-    this.cache.set(cacheKey, model);
+    this.localCache.set(cacheKey, model);
     this.saveToLocal(orgId, model);
-
     return model;
   }
 
-  /** List all versions for an org/model type. */
-  async listVersions(orgId: string, modelType: SurrogateModelType): Promise<SurrogateModelVersion[]> {
-    const { data, error } = await supabase
-      .from("ml_model_versions")
-      .select("*")
-      .eq("organization_id", orgId)
-      .eq("model_type", modelType)
-      .order("version", { ascending: false });
-
-    if (error) throw new Error(`Failed to list model versions: ${error.message}`);
-    return (data ?? []).map(this.rowToModel);
+  async listVersions(
+    orgId: string,
+    modelType: SurrogateModelType
+  ): Promise<SurrogateModelVersion[]> {
+    const versions = await this.inner.listVersions(orgId, modelType);
+    return versions.map(versionToLegacy);
   }
 
   // ── Local Storage ───────────────────────────────────────────────────
@@ -141,7 +113,6 @@ export class ModelRegistry {
       const raw = localStorage.getItem(LOCAL_CACHE_KEY);
       const cached: CachedModels = raw ? JSON.parse(raw) : { models: [], syncedAt: "" };
 
-      // Replace or add
       const idx = cached.models.findIndex(
         (m) => m.organizationId === orgId && m.modelType === model.modelType
       );
@@ -151,21 +122,5 @@ export class ModelRegistry {
       cached.syncedAt = new Date().toISOString();
       localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(cached));
     } catch { /* localStorage unavailable */ }
-  }
-
-  // ── Helpers ─────────────────────────────────────────────────────────
-
-  private rowToModel(row: Record<string, unknown>): SurrogateModelVersion {
-    return {
-      id: row.id as string,
-      organizationId: row.organization_id as string,
-      modelType: row.model_type as SurrogateModelType,
-      version: row.version as number,
-      weights: row.weights as SurrogateModelWeights,
-      normalization: row.normalization as NormalizationParams,
-      metrics: row.metrics as SurrogateModelMetrics,
-      isActive: row.is_active as boolean,
-      createdAt: row.created_at as string,
-    };
   }
 }
