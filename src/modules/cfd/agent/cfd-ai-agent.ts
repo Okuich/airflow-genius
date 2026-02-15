@@ -92,6 +92,12 @@ const KNOWLEDGE_BASE: KnowledgePattern[] = [
     diagnosticChecks: [DiagnosticCheck.RackHotspot, DiagnosticCheck.ContainmentLeak, DiagnosticCheck.PUEDeviation, DiagnosticCheck.CoolingCapacity],
     commonActions: [ActionType.OptimizeContainment, ActionType.AdjustCoolingCapacity, ActionType.RebalanceAirflow, ActionType.ProvideExplanation],
   },
+  {
+    intent: IntentCategory.ComplianceDiagnostic,
+    keywords: ["compliance", "regulation", "standard", "ashrae", "iso 14644", "osha", "nfpa", "acgih", "audit", "violation", "pel", "tlv", "pue target", "code", "compliant", "non-compliant", "risk score"],
+    diagnosticChecks: [DiagnosticCheck.ComplianceViolation, DiagnosticCheck.RiskScoreThreshold, DiagnosticCheck.AuditReadiness],
+    commonActions: [ActionType.RunComplianceAudit, ActionType.RemediateViolation, ActionType.GenerateAuditReport, ActionType.ProvideExplanation],
+  },
 ];
 
 // ─── Agent Implementation ───────────────────────────────────────────────────
@@ -456,6 +462,9 @@ export class CFDAIAgent {
       [DiagnosticCheck.ContainmentLeak]: () => ({ check, passed: false, value: 0.72, threshold: "> 0.85", severity: Severity.Medium, detail: "Containment score 0.72 — bypass air detected from missing blanking panels and unsealed cable cutouts" }),
       [DiagnosticCheck.PUEDeviation]: () => ({ check, passed: false, value: 1.65, threshold: "< 1.4", severity: Severity.Medium, detail: "Estimated PUE 1.65 exceeds target 1.4 — cooling overhead is dominant contributor" }),
       [DiagnosticCheck.CoolingCapacity]: () => ({ check, passed: true, value: 1.25, threshold: "> 1.2× IT load", severity: Severity.Low, detail: "Cooling capacity 1.25× IT load — adequate headroom" }),
+      [DiagnosticCheck.ComplianceViolation]: () => ({ check, passed: false, value: 2, threshold: "0 violations", severity: Severity.High, detail: "2 regulatory violations detected — immediate remediation required" }),
+      [DiagnosticCheck.RiskScoreThreshold]: () => ({ check, passed: false, value: 0.55, threshold: "< 0.3", severity: Severity.Medium, detail: "Overall compliance risk score 0.55 exceeds acceptable threshold" }),
+      [DiagnosticCheck.AuditReadiness]: () => ({ check, passed: false, value: "incomplete", threshold: "All standards addressed", severity: Severity.Medium, detail: "Audit documentation incomplete — missing remediation plans for outstanding findings" }),
     };
 
     return checkTemplates[check]();
@@ -555,6 +564,9 @@ export class CFDAIAgent {
       [ActionType.OptimizeContainment]: "Improve hot/cold aisle containment — install blanking panels, seal cable cutouts, and add end-of-row doors",
       [ActionType.AdjustCoolingCapacity]: "Adjust CRAC/CRAH setpoints or add supplemental cooling to eliminate rack hotspots",
       [ActionType.RebalanceAirflow]: "Rebalance raised-floor tile placement and plenum airflow to match rack-level demand",
+      [ActionType.RunComplianceAudit]: "Run full compliance audit against applicable regulatory standards (ASHRAE, ISO, OSHA, etc.)",
+      [ActionType.RemediateViolation]: "Apply recommended remediation for identified compliance violations",
+      [ActionType.GenerateAuditReport]: "Generate formal audit documentation with findings, risk scores, and remediation deadlines",
     };
     return descriptions[type];
   }
@@ -584,6 +596,9 @@ export class CFDAIAgent {
       [ActionType.OptimizeContainment]: { installBlankingPanels: true, sealCutouts: true, addDoors: true },
       [ActionType.AdjustCoolingCapacity]: { raiseSupplyTemp: false, addUnits: false },
       [ActionType.RebalanceAirflow]: { reviewTilePlacement: true, plenumObstructionCheck: true },
+      [ActionType.RunComplianceAudit]: { includeAllStandards: true },
+      [ActionType.RemediateViolation]: { autoApply: false, requiresApproval: true },
+      [ActionType.GenerateAuditReport]: { format: "structured", includeRemediation: true },
     };
     return paramMap[type] ?? {};
   }
@@ -609,6 +624,9 @@ export class CFDAIAgent {
       [ActionType.OptimizeContainment]: "Reduces bypass air by 20-30%, lowering CRAC load and improving rack inlet temperatures",
       [ActionType.AdjustCoolingCapacity]: "Eliminates thermal hotspots by matching cooling supply to IT heat load",
       [ActionType.RebalanceAirflow]: "Ensures each rack receives adequate airflow, reducing both hotspots and overcooling",
+      [ActionType.RunComplianceAudit]: "Identifies all regulatory violations and risk areas across applicable standards",
+      [ActionType.RemediateViolation]: "Resolves compliance violations to bring simulation within regulatory limits",
+      [ActionType.GenerateAuditReport]: "Produces formal audit documentation for regulatory review and sign-off",
     };
     return impacts[type];
   }

@@ -1144,3 +1144,109 @@ export interface EventTransport {
     handler: (event: Event<T>) => void | Promise<void>
   ): () => void;
 }
+
+// ── Compliance Pipeline ─────────────────────────────────────────────────────
+
+export type ComplianceStandard =
+  | "ASHRAE_62.1"
+  | "ASHRAE_55"
+  | "ASHRAE_90.4"
+  | "ISO_14644"
+  | "OSHA_PEL"
+  | "NFPA_45"
+  | "EN_16798"
+  | "ACGIH_TLV"
+  | "TIA_942"
+  | "NEBS_GR_3028";
+
+export type ComplianceSeverity = "pass" | "advisory" | "warning" | "violation";
+
+export interface ComplianceRule {
+  id: string;
+  standard: ComplianceStandard;
+  clause: string;
+  description: string;
+  metric: string;
+  threshold: number;
+  operator: "lt" | "lte" | "gt" | "gte" | "eq" | "between";
+  upperBound?: number;
+  unit: string;
+  severity: ComplianceSeverity;
+  domain: AirflowComplianceDomain;
+}
+
+export type AirflowComplianceDomain =
+  | "hvac"
+  | "cleanroom"
+  | "exhaust"
+  | "agriculture"
+  | "data-center"
+  | "general";
+
+export interface ComplianceCheckResult {
+  ruleId: string;
+  rule: ComplianceRule;
+  actualValue: number;
+  passed: boolean;
+  severity: ComplianceSeverity;
+  detail: string;
+  remediation: string | null;
+}
+
+export interface StandardMapping {
+  standard: ComplianceStandard;
+  applicableClauses: string[];
+  relevance: number;
+  rationale: string;
+}
+
+export interface RiskScore {
+  category: string;
+  score: number;
+  maxScore: number;
+  severity: ComplianceSeverity;
+  contributingFactors: string[];
+}
+
+export interface ComplianceRiskReport {
+  overallRiskScore: number;
+  maxPossibleScore: number;
+  riskLevel: "low" | "medium" | "high" | "critical";
+  categories: RiskScore[];
+  topRisks: string[];
+}
+
+export interface AuditFinding {
+  id: string;
+  standard: ComplianceStandard;
+  clause: string;
+  description: string;
+  severity: ComplianceSeverity;
+  actualValue: string;
+  requiredValue: string;
+  remediation: string;
+  deadline: string | null;
+}
+
+export interface AuditDocument {
+  id: string;
+  title: string;
+  generatedAt: string;
+  simulationId: string;
+  organizationId: string;
+  standards: ComplianceStandard[];
+  findings: AuditFinding[];
+  riskReport: ComplianceRiskReport;
+  summary: string;
+  signOffRequired: boolean;
+  overallVerdict: "compliant" | "conditionally_compliant" | "non_compliant";
+}
+
+export interface CompliancePipelineResult {
+  simulationId: string;
+  checkResults: ComplianceCheckResult[];
+  standardMappings: StandardMapping[];
+  riskReport: ComplianceRiskReport;
+  auditDocument: AuditDocument;
+  analyzedAt: string;
+}

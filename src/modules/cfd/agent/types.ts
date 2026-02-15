@@ -11,6 +11,7 @@ export enum IntentCategory {
   ContaminationDiagnostic = "contamination_diagnostic",
   ExhaustSystemDiagnostic = "exhaust_system_diagnostic",
   DataCenterDiagnostic = "data_center_diagnostic",
+  ComplianceDiagnostic = "compliance_diagnostic",
   GeneralQuestion = "general_question",
   SimulationSetup = "simulation_setup",
   Unknown = "unknown",
@@ -43,6 +44,9 @@ export enum ActionType {
   OptimizeContainment = "optimize_containment",
   AdjustCoolingCapacity = "adjust_cooling_capacity",
   RebalanceAirflow = "rebalance_airflow",
+  RunComplianceAudit = "run_compliance_audit",
+  RemediateViolation = "remediate_violation",
+  GenerateAuditReport = "generate_audit_report",
 }
 
 export enum DiagnosticCheck {
@@ -68,6 +72,9 @@ export enum DiagnosticCheck {
   ContainmentLeak = "containment_leak",
   PUEDeviation = "pue_deviation",
   CoolingCapacity = "cooling_capacity",
+  ComplianceViolation = "compliance_violation",
+  RiskScoreThreshold = "risk_score_threshold",
+  AuditReadiness = "audit_readiness",
 }
 
 export enum PlanStatus {
