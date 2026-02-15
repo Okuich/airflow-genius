@@ -2,3 +2,6 @@ project_id = "xryocgadrixcvchikmug"
 
 [functions.ml-pipeline-worker]
 verify_jwt = false
+
+[functions.cleanroom-metrics]
+verify_jwt = false
