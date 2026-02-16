@@ -85,8 +85,8 @@ function useISOClassification(hours: number) {
       zoneSamples[z.zone] = Array.from({ length: 12 }, (_, i) => ({
         timestamp: Date.now() - (11 - i) * 3600_000,
         airChangeRate: z.overrides.airChangeRate! + (Math.random() - 0.5) * 4,
-        particleRetention: z.overrides.particleRetention! + (Math.random() - 0.5) * 0.01,
-        laminarStability: z.overrides.laminarStability! + (Math.random() - 0.5) * 0.03,
+        particleRetention: Math.min(1, Math.max(0, z.overrides.particleRetention! + (Math.random() - 0.5) * 0.01)),
+        laminarStability: Math.min(1, Math.max(0, z.overrides.laminarStability! + (Math.random() - 0.5) * 0.03)),
       }));
     }
     const zoneClassifications = ISOClassifier.classifyZones(zoneSamples);
