@@ -6,6 +6,7 @@ import { ResidualChart } from "@/components/cfd/ResidualChart";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { AiAssistantPanel } from "@/components/cfd/AiAssistantPanel";
 import { SEOHead } from "@/components/SEOHead";
+import { OnboardingOverlay, RestartTourButton, useOnboardingTour } from "@/components/onboarding/OnboardingTour";
 import type { SimulationContext } from "@/components/cfd/ai-chat-types";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -15,6 +16,7 @@ const Index = () => {
   const metrics = getMockMetrics();
   const activeSim = simulations.find((s) => s.status === "solving");
   const [showAi, setShowAi] = useState(false);
+  const tour = useOnboardingTour();
 
   const simContext: SimulationContext | undefined = activeSim
     ? {
@@ -32,7 +34,7 @@ const Index = () => {
   return (
     <div className="flex h-screen overflow-hidden dark">
       <SEOHead title="Dashboard — FlowForge CFD" description="Monitor CFD simulations, view residuals, and manage your HVAC & turbomachinery projects." />
-      <AppSidebar />
+      <AppSidebar data-tour="sidebar-nav" />
 
       <main className="flex-1 overflow-y-auto bg-background grid-engineering">
         {/* Header */}
@@ -42,14 +44,16 @@ const Index = () => {
             <p className="text-sm text-muted-foreground mt-0.5">FlowForge CFD — HVAC & Turbomachinery Platform</p>
           </div>
           <div className="flex items-center gap-3">
+            <RestartTourButton onClick={tour.startTour} />
             <button
+              data-tour="ai-agent"
               onClick={() => setShowAi(!showAi)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg surface-raised text-surface-foreground hover:bg-surface-overlay transition-colors text-sm"
             >
               <MessageSquare className="w-4 h-4 text-data-cyan" />
               AI Agent
             </button>
-            <Link to="/builder" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity text-sm font-medium">
+            <Link data-tour="new-sim" to="/builder" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity text-sm font-medium">
               <Plus className="w-4 h-4" />
               New Simulation
             </Link>
@@ -58,7 +62,7 @@ const Index = () => {
 
         <div className="p-8 space-y-8">
           {/* Metrics Row */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div data-tour="metrics-row" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <MetricCard label="Total Simulations" value={metrics.totalSimulations} icon={BarChart3} />
             <MetricCard label="Running" value={metrics.running} icon={Activity} color="cyan" pulse />
             <MetricCard label="Completed" value={metrics.completed} icon={Wind} color="emerald" />
@@ -69,7 +73,7 @@ const Index = () => {
 
           {/* Active Simulation Residuals */}
           {activeSim && activeSim.residuals.length > 0 && (
-            <div className="surface-panel rounded-lg p-6">
+            <div data-tour="residuals" className="surface-panel rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-base font-semibold text-foreground">{activeSim.name}</h2>
@@ -115,6 +119,17 @@ const Index = () => {
             solverConfig: activeSim.solverConfig as unknown as Record<string, unknown>,
             fluidProperties: activeSim.fluidProperties as unknown as Record<string, unknown>,
           } : undefined}
+        />
+      )}
+
+      {/* Onboarding Tour */}
+      {tour.isActive && (
+        <OnboardingOverlay
+          currentStep={tour.currentStep}
+          onNext={tour.next}
+          onPrev={tour.prev}
+          onSkip={tour.endTour}
+          totalSteps={tour.totalSteps}
         />
       )}
     </div>

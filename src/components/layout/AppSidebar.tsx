@@ -17,11 +17,11 @@ const NAV_ITEMS = [
   { icon: Settings2, label: "Settings", href: "/" },
 ];
 
-export function AppSidebar() {
+export function AppSidebar(props: React.HTMLAttributes<HTMLElement>) {
   const location = useLocation();
 
   return (
-    <aside className="w-64 h-screen flex flex-col surface-panel border-r border-surface-border shrink-0">
+    <aside {...props} data-tour="sidebar-nav" className="w-64 h-screen flex flex-col surface-panel border-r border-surface-border shrink-0">
       {/* Logo */}
       <div className="px-6 py-5 border-b border-surface-border">
         <div className="flex items-center gap-3">
