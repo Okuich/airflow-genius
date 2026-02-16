@@ -17,6 +17,7 @@ import CleanroomMetrics from "./pages/CleanroomMetrics";
 import DataCenterHeatMap from "./pages/DataCenterHeatMap";
 import Auth from "./pages/Auth";
 import Architecture from "./pages/Architecture";
+import TrialSignup from "./pages/TrialSignup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
+      <Route path="/trial" element={<TrialSignup />} />
       <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
       <Route path="/builder" element={<ProtectedRoute><Builder /></ProtectedRoute>} />
       <Route path="/viewer" element={<ProtectedRoute><Viewer /></ProtectedRoute>} />

@@ -675,6 +675,45 @@ export type Database = {
           },
         ]
       }
+      trial_signups: {
+        Row: {
+          company_name: string
+          company_size: string | null
+          created_at: string
+          id: string
+          industry: string
+          status: string
+          trial_end: string
+          trial_start: string
+          use_case: string | null
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          company_size?: string | null
+          created_at?: string
+          id?: string
+          industry?: string
+          status?: string
+          trial_end?: string
+          trial_start?: string
+          use_case?: string | null
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          company_size?: string | null
+          created_at?: string
+          id?: string
+          industry?: string
+          status?: string
+          trial_end?: string
+          trial_start?: string
+          use_case?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
