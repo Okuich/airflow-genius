@@ -137,6 +137,12 @@ const Auth = () => {
             {isSignUp ? "Sign in" : "Sign up"}
           </button>
         </p>
+
+        <div className="mt-4 pt-4 border-t border-border text-center">
+          <Link to="/trial" className="text-sm text-data-cyan hover:underline font-medium inline-flex items-center gap-1">
+            Start a 90-day free trial <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </div>
     </div>
   );
