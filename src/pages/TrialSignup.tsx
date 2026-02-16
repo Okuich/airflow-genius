@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SEOHead } from "@/components/SEOHead";
 import {
   Wind, CheckCircle2, ArrowRight, Mail, Lock, User, Building2,
-  Briefcase, Users, Zap, ShieldCheck, Brain, BarChart3, AlertCircle,
+  Briefcase, Users, Zap, ShieldCheck, Brain, BarChart3, AlertCircle, UserCog,
 } from "lucide-react";
 
 const BENEFITS = [
@@ -16,6 +16,7 @@ const BENEFITS = [
 ];
 
 const COMPANY_SIZES = ["1–10", "11–50", "51–200", "201–500", "500+"];
+const JOB_ROLES = ["Engineering Manager", "CFD Engineer", "Product Development", "R&D Director", "Facilities Manager", "Other"];
 
 export default function TrialSignup() {
   const { signUp } = useAuth();
@@ -32,6 +33,7 @@ export default function TrialSignup() {
   const [companyName, setCompanyName] = useState("");
   const [companySize, setCompanySize] = useState("");
   const [useCase, setUseCase] = useState("");
+  const [jobRole, setJobRole] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,6 +62,7 @@ export default function TrialSignup() {
             industry: "HVAC",
             company_size: companySize || null,
             use_case: useCase || null,
+            job_role: jobRole || null,
           } as any);
 
         if (trialError) {
@@ -88,8 +91,10 @@ export default function TrialSignup() {
           </p>
           <div className="surface-raised rounded-lg border border-surface-border p-4 text-left text-xs text-muted-foreground space-y-1 mb-6">
             <p><strong className="text-foreground">Company:</strong> {companyName}</p>
+            {jobRole && <p><strong className="text-foreground">Role:</strong> {jobRole}</p>}
             {companySize && <p><strong className="text-foreground">Size:</strong> {companySize} employees</p>}
             {useCase && <p><strong className="text-foreground">Use case:</strong> {useCase}</p>}
+            <p><strong className="text-foreground">Workspace:</strong> Auto-created ✓</p>
             <p><strong className="text-foreground">Trial ends:</strong> {new Date(Date.now() + 90 * 86400000).toLocaleDateString()}</p>
           </div>
           <Link
@@ -237,7 +242,25 @@ export default function TrialSignup() {
               </div>
             </div>
 
-            {/* Company Size */}
+            {/* Role */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Your Role</label>
+              <div className="relative">
+                <UserCog className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <select
+                  required
+                  value={jobRole}
+                  onChange={(e) => setJobRole(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-md bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring appearance-none"
+                >
+                  <option value="">Select your role</option>
+                  {JOB_ROLES.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-foreground mb-1.5">Company Size</label>
               <div className="relative">
