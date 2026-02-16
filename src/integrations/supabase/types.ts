@@ -682,6 +682,7 @@ export type Database = {
           created_at: string
           id: string
           industry: string
+          job_role: string | null
           status: string
           trial_end: string
           trial_start: string
@@ -694,6 +695,7 @@ export type Database = {
           created_at?: string
           id?: string
           industry?: string
+          job_role?: string | null
           status?: string
           trial_end?: string
           trial_start?: string
@@ -706,6 +708,7 @@ export type Database = {
           created_at?: string
           id?: string
           industry?: string
+          job_role?: string | null
           status?: string
           trial_end?: string
           trial_start?: string
