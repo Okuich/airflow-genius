@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTrialAnalytics } from "./use-trial-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowRight, ArrowLeft, Mail, Lock, User, Building2,
@@ -53,6 +54,7 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
   const [selectedRole, setSelectedRole] = useState<RoleProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { track } = useTrialAnalytics();
 
   // Form
   const [email, setEmail] = useState("");
@@ -70,14 +72,18 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
   const requiredConsents = useMemo(() => consents.filter((c) => c.required), [consents]);
   const allRequiredChecked = requiredConsents.every((c) => checkedConsents[c.id]);
 
-  const toggleConsent = (id: string) =>
-    setCheckedConsents((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleConsent = (id: string) => {
+    const newVal = !checkedConsents[id];
+    setCheckedConsents((prev) => ({ ...prev, [id]: newVal }));
+    track("consent_toggled", { consent_id: id, checked: newVal, role: selectedRole?.id });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedRole || !allRequiredChecked) return;
     setError(null);
     setLoading(true);
+    track("signup_submitted", { role: selectedRole?.id, company_size: companySize });
 
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -107,9 +113,11 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
         }
       }
 
+      track("signup_succeeded", { role: selectedRole?.id, company_size: companySize });
       setStep("confirm");
     } catch (err: any) {
       setError(err.message ?? "Signup failed. Please try again.");
+      track("signup_failed", { role: selectedRole?.id, error: err.message });
     } finally {
       setLoading(false);
     }
@@ -128,10 +136,15 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
           {ROLE_PROFILES.map((role) => (
             <button
               key={role.id}
-              onClick={() => {
+               onClick={() => {
+                const prevRole = selectedRole;
                 setSelectedRole(role);
                 onRoleChange?.(role);
                 setCheckedConsents({});
+                track(prevRole ? "role_changed" : "role_selected", {
+                  role: role.id,
+                  previous_role: prevRole?.id ?? null,
+                });
               }}
               className={`group flex items-start gap-3 p-4 rounded-lg border text-left transition-all ${
                 selectedRole?.id === role.id
@@ -154,7 +167,10 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
 
         <button
           disabled={!selectedRole}
-          onClick={() => setStep("details")}
+          onClick={() => {
+            track("form_started", { role: selectedRole?.id });
+            setStep("details");
+          }}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-md bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-40"
         >
           Continue <ArrowRight className="w-4 h-4" />
@@ -166,6 +182,8 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
   /* ── Step 3: Confirmation ── */
   if (step === "confirm") {
     const aiTips = getAiAgentTips(selectedRole);
+    // Fire once when confirmation is viewed
+    track("confirmation_viewed", { role: selectedRole?.id });
     return (
       <div className="text-center py-4">
         <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-primary" />
@@ -204,6 +222,7 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
 
         <Link
           to="/auth"
+          onClick={() => track("signin_clicked", { role: selectedRole?.id, from: "confirmation" })}
           className="inline-flex items-center gap-2 text-sm text-primary hover:underline font-medium"
         >
           Go to sign in <ArrowRight className="w-3.5 h-3.5" />
