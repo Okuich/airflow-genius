@@ -1,5 +1,10 @@
-import { Wind, BarChart3, Settings2, FolderOpen, Cpu, HelpCircle, LogOut, Eye, Shield, Brain, Microscope, Gauge, Snowflake, Server, Network } from "lucide-react";
+import {
+  Wind, BarChart3, Settings2, FolderOpen, Cpu, HelpCircle, LogOut,
+  Eye, Shield, Brain, Microscope, Gauge, Snowflake, Server, Network, Lock,
+} from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/modules/tenant";
+import { isPathAllowed } from "@/components/trial/trial-tiers";
 
 const NAV_ITEMS = [
   { icon: BarChart3, label: "Dashboard", href: "/" },
@@ -19,6 +24,11 @@ const NAV_ITEMS = [
 
 export function AppSidebar(props: React.HTMLAttributes<HTMLElement>) {
   const location = useLocation();
+  const { currentOrg } = useAuth();
+
+  // Extract trial tier from org tier (e.g. "trial-cleanroom" → "cleanroom")
+  const orgTier = currentOrg?.tier ?? "full";
+  const trialTier = orgTier.startsWith("trial-") ? orgTier.replace("trial-", "") : "full";
 
   return (
     <aside {...props} data-tour="sidebar-nav" className="w-64 h-screen flex flex-col surface-panel border-r border-surface-border shrink-0">
@@ -39,6 +49,23 @@ export function AppSidebar(props: React.HTMLAttributes<HTMLElement>) {
       <nav className="flex-1 px-3 py-4 space-y-1">
         {NAV_ITEMS.map((item) => {
           const isActive = location.pathname === item.href;
+          // Items that point to "/" are always allowed (Dashboard, Simulations, etc.)
+          const allowed = item.href === "/" || isPathAllowed(trialTier, item.href);
+
+          if (!allowed) {
+            return (
+              <div
+                key={item.label}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground/40 cursor-not-allowed select-none"
+                title={`Upgrade your trial to access ${item.label}`}
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+                <Lock className="w-3 h-3 ml-auto" />
+              </div>
+            );
+          }
+
           return (
             <Link
               key={item.label}

@@ -686,6 +686,7 @@ export type Database = {
           status: string
           trial_end: string
           trial_start: string
+          trial_tier: string
           use_case: string | null
           user_id: string
         }
@@ -699,6 +700,7 @@ export type Database = {
           status?: string
           trial_end?: string
           trial_start?: string
+          trial_tier?: string
           use_case?: string | null
           user_id: string
         }
@@ -712,6 +714,7 @@ export type Database = {
           status?: string
           trial_end?: string
           trial_start?: string
+          trial_tier?: string
           use_case?: string | null
           user_id?: string
         }

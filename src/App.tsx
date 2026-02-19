@@ -1,11 +1,13 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/modules/tenant";
+import { isPathAllowed } from "@/components/trial/trial-tiers";
 import Index from "./pages/Index";
 import Builder from "./pages/Builder";
 import Viewer from "./pages/Viewer";
@@ -23,7 +25,9 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, currentOrg } = useAuth();
+  const location = useLocation();
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background dark">
@@ -32,6 +36,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
   if (!user) return <Navigate to="/auth" replace />;
+
+  // Trial tier feature gating
+  const orgTier = currentOrg?.tier ?? "full";
+  const trialTier = orgTier.startsWith("trial-") ? orgTier.replace("trial-", "") : "full";
+  if (!isPathAllowed(trialTier, location.pathname)) {
+    return <Navigate to="/" replace />;
+  }
+
   return <>{children}</>;
 }
 
