@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { trackTrialEvent } from "@/components/trial/use-trial-analytics";
 import { Link } from "react-router-dom";
 import { SEOHead } from "@/components/SEOHead";
 import {
@@ -48,6 +49,10 @@ const AI_AGENT_FEATURES = [
 export default function TrialSignup() {
   const [activeRole, setActiveRole] = useState<RoleProfile | null>(null);
   const defaultBenefits = ROLE_PROFILES[0];
+
+  useEffect(() => {
+    trackTrialEvent("page_view", { page: "/trial" });
+  }, []);
 
   return (
     <div className="min-h-screen bg-background dark">
