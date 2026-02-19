@@ -5,8 +5,11 @@ import { MetricCard } from "@/components/cfd/MetricCard";
 import { ResidualChart } from "@/components/cfd/ResidualChart";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { AiAssistantPanel } from "@/components/cfd/AiAssistantPanel";
+import { IndustryQuickAccess } from "@/components/cfd/IndustryQuickAccess";
 import { SEOHead } from "@/components/SEOHead";
 import { OnboardingOverlay, RestartTourButton, useOnboardingTour } from "@/components/onboarding/OnboardingTour";
+import { getIndustryOnboarding, getTrialIndustry } from "@/components/trial/industry-onboarding";
+import { useAuth } from "@/modules/tenant";
 import type { SimulationContext } from "@/components/cfd/ai-chat-types";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -17,6 +20,12 @@ const Index = () => {
   const activeSim = simulations.find((s) => s.status === "solving");
   const [showAi, setShowAi] = useState(false);
   const tour = useOnboardingTour();
+  const { currentOrg } = useAuth();
+
+  // Derive industry/tier from org or localStorage
+  const orgTier = currentOrg?.tier ?? "";
+  const trialTier = orgTier.startsWith("trial-") ? orgTier.replace("trial-", "") : getTrialIndustry();
+  const industryInfo = getIndustryOnboarding(trialTier);
 
   const simContext: SimulationContext | undefined = activeSim
     ? {
@@ -41,7 +50,7 @@ const Index = () => {
         <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-xl px-8 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold text-foreground tracking-tight">Simulation Dashboard</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">FlowForge CFD — HVAC & Turbomachinery Platform</p>
+            <p className="text-sm text-muted-foreground mt-0.5">FlowForge CFD — {industryInfo.dashboardSubtitle}</p>
           </div>
           <div className="flex items-center gap-3">
             <RestartTourButton onClick={tour.startTour} />
@@ -90,6 +99,9 @@ const Index = () => {
               <ResidualChart residuals={activeSim.residuals} />
             </div>
           )}
+
+          {/* Industry Quick Access */}
+          <IndustryQuickAccess tierId={trialTier} />
 
           {/* Simulations List */}
           <div>
