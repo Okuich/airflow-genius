@@ -22,27 +22,51 @@ interface GPUJobResponse {
   estimatedStartSeconds: number;
 }
 
-async function submitToProvider(_job: GPUJobRequest): Promise<GPUJobResponse> {
-  // ┌──────────────────────────────────────────────────────────────────────┐
-  // │  STUB: Replace with real provider call                              │
-  // │                                                                     │
-  // │  Example providers:                                                 │
-  // │  - RunPod:  POST https://api.runpod.ai/v2/{endpoint}/run           │
-  // │  - Modal:   modal.Function.from_name("cfd-solver").spawn.remote()  │
-  // │  - Lambda:  POST https://cloud.lambdalabs.com/api/v1/instances     │
-  // │  - AWS:     ec2.runInstances({ InstanceType: "p4d.24xlarge" })     │
-  // │                                                                     │
-  // │  Required env vars (add via secrets when ready):                    │
-  // │  - GPU_PROVIDER_API_KEY                                             │
-  // │  - GPU_PROVIDER_ENDPOINT                                            │
-  // └──────────────────────────────────────────────────────────────────────┘
+async function submitToProvider(job: GPUJobRequest): Promise<GPUJobResponse> {
+  const apiKey = Deno.env.get("RUNPOD_API_KEY");
+  const endpointId = Deno.env.get("RUNPOD_ENDPOINT_ID");
 
-  console.log("[gpu-job-submit] STUB: would submit job", _job.simulationId);
+  // ── Fallback to stub mode when secrets aren't configured yet ──
+  if (!apiKey || !endpointId) {
+    console.log("[gpu-job-submit] RunPod not configured – running in stub mode", job.simulationId);
+    return {
+      providerId: `stub-${crypto.randomUUID().slice(0, 8)}`,
+      status: "queued",
+      estimatedStartSeconds: 30,
+    };
+  }
+
+  // ── Submit to RunPod Serverless ──
+  const runpodUrl = `https://api.runpod.ai/v2/${endpointId}/run`;
+
+  const res = await fetch(runpodUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      input: {
+        simulation_id: job.simulationId,
+        mesh_cell_count: job.meshCellCount,
+        solver_config: job.solverConfig,
+        priority: job.priority,
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const errBody = await res.text();
+    throw new Error(`RunPod API error ${res.status}: ${errBody}`);
+  }
+
+  const data = await res.json();
+  console.log("[gpu-job-submit] RunPod job submitted", data.id);
 
   return {
-    providerId: `stub-${crypto.randomUUID().slice(0, 8)}`,
-    status: "queued",
-    estimatedStartSeconds: 30,
+    providerId: data.id,
+    status: data.status === "IN_QUEUE" ? "queued" : "provisioning",
+    estimatedStartSeconds: 15,
   };
 }
 
