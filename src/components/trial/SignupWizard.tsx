@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowRight, ArrowLeft, Mail, Lock, User, Building2,
-  Users, AlertCircle, CheckCircle2, Briefcase,
+  Users, AlertCircle, CheckCircle2, Briefcase, ChevronDown,
 } from "lucide-react";
 import { ROLE_PROFILES, type RoleProfile } from "./role-data";
+import { getConsentsForRole, type ConsentItem } from "./consent-data";
 
 const COMPANY_SIZES = ["1–10", "11–50", "51–200", "201–500", "500+"];
 
@@ -29,9 +30,20 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
   const [companySize, setCompanySize] = useState("");
   const [useCase, setUseCase] = useState("");
 
+  // Consents
+  const [checkedConsents, setCheckedConsents] = useState<Record<string, boolean>>({});
+  const [expandedConsent, setExpandedConsent] = useState<string | null>(null);
+
+  const consents = useMemo(() => getConsentsForRole(selectedRole), [selectedRole]);
+  const requiredConsents = useMemo(() => consents.filter((c) => c.required), [consents]);
+  const allRequiredChecked = requiredConsents.every((c) => checkedConsents[c.id]);
+
+  const toggleConsent = (id: string) =>
+    setCheckedConsents((prev) => ({ ...prev, [id]: !prev[id] }));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedRole) return;
+    if (!selectedRole || !allRequiredChecked) return;
     setError(null);
     setLoading(true);
 
@@ -84,10 +96,11 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
           {ROLE_PROFILES.map((role) => (
             <button
               key={role.id}
-            onClick={() => {
-              setSelectedRole(role);
-              onRoleChange?.(role);
-            }}
+              onClick={() => {
+                setSelectedRole(role);
+                onRoleChange?.(role);
+                setCheckedConsents({});
+              }}
               className={`group flex items-start gap-3 p-4 rounded-lg border text-left transition-all ${
                 selectedRole?.id === role.id
                   ? "border-primary bg-primary/5 ring-2 ring-primary/20"
@@ -207,17 +220,89 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
             placeholder="e.g. HVAC duct optimization, cleanroom airflow (optional)" />
         </Field>
 
-        <button type="submit" disabled={loading}
+        {/* ── Consent & Policy Checkboxes ── */}
+        <div className="space-y-2 pt-2 border-t border-border">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Agreements & Consent
+          </p>
+          {consents.map((consent, idx) => (
+            <ConsentCheckbox
+              key={consent.id}
+              consent={consent}
+              checked={!!checkedConsents[consent.id]}
+              onToggle={() => toggleConsent(consent.id)}
+              expanded={expandedConsent === consent.id}
+              onExpand={() => setExpandedConsent(expandedConsent === consent.id ? null : consent.id)}
+              isRoleSpecific={idx >= 2}
+            />
+          ))}
+        </div>
+
+        <button type="submit" disabled={loading || !allRequiredChecked}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-md bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 mt-2"
         >
           {loading ? "Creating your trial…" : "Start 90-Day Free Trial"}
           <ArrowRight className="w-4 h-4" />
         </button>
 
-        <p className="text-[11px] text-muted-foreground text-center mt-3">
-          By signing up you agree to our terms of service. No credit card required.
-        </p>
+        {!allRequiredChecked && (
+          <p className="text-[11px] text-muted-foreground text-center">
+            Please accept all required agreements to continue.
+          </p>
+        )}
       </form>
+    </div>
+  );
+}
+
+/* ── Consent Checkbox ── */
+function ConsentCheckbox({ consent, checked, onToggle, expanded, onExpand, isRoleSpecific }: {
+  consent: ConsentItem;
+  checked: boolean;
+  onToggle: () => void;
+  expanded: boolean;
+  onExpand: () => void;
+  isRoleSpecific: boolean;
+}) {
+  return (
+    <div className={`rounded-lg border transition-all ${
+      isRoleSpecific
+        ? "border-primary/20 bg-primary/[0.03] animate-in fade-in slide-in-from-bottom-2 duration-300"
+        : "border-border"
+    } ${checked ? "bg-muted/20" : ""}`}>
+      <label className="flex items-start gap-3 p-3 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={onToggle}
+          className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-ring shrink-0 accent-primary"
+        />
+        <div className="flex-1 min-w-0">
+          <span className="text-xs text-foreground leading-snug">
+            {consent.label}
+            {consent.required && <span className="text-destructive ml-0.5">*</span>}
+          </span>
+          {isRoleSpecific && (
+            <span className="ml-1.5 inline-flex items-center text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+              Role-specific
+            </span>
+          )}
+        </div>
+        {consent.description && (
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); onExpand(); }}
+            className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-180" : ""}`} />
+          </button>
+        )}
+      </label>
+      {expanded && consent.description && (
+        <div className="px-3 pb-3 pl-10 animate-in fade-in slide-in-from-top-1 duration-200">
+          <p className="text-[11px] text-muted-foreground leading-relaxed">{consent.description}</p>
+        </div>
+      )}
     </div>
   );
 }
