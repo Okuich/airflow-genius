@@ -18,7 +18,7 @@ const NAV_ITEMS = [
   { icon: Snowflake, label: "Cleanroom", href: "/cleanroom" },
   { icon: Server, label: "Data Center", href: "/datacenter" },
   { icon: Network, label: "Architecture", href: "/architecture" },
-  { icon: Cpu, label: "Solver Queue", href: "/" },
+  { icon: Cpu, label: "GPU Usage", href: "/gpu-usage" },
   { icon: Settings2, label: "Settings", href: "/" },
 ];
 

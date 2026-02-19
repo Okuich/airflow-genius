@@ -19,7 +19,7 @@ export const TRIAL_TIERS: Record<string, TrialTier> = {
     description: "Complete platform access across all modules.",
     allowedPaths: [
       "/", "/builder", "/viewer", "/compliance", "/ml-pipeline",
-      "/explainability", "/solver-status", "/cleanroom", "/datacenter", "/architecture",
+      "/explainability", "/solver-status", "/cleanroom", "/datacenter", "/architecture", "/gpu-usage",
     ],
   },
   cleanroom: {
@@ -27,7 +27,7 @@ export const TRIAL_TIERS: Record<string, TrialTier> = {
     label: "Cleanroom & Pharma",
     description: "ISO classification, particle monitoring, and compliance.",
     allowedPaths: [
-      "/", "/builder", "/viewer", "/compliance", "/cleanroom", "/solver-status",
+      "/", "/builder", "/viewer", "/compliance", "/cleanroom", "/solver-status", "/gpu-usage",
     ],
   },
   "data-center": {
@@ -35,7 +35,7 @@ export const TRIAL_TIERS: Record<string, TrialTier> = {
     label: "Data Center Cooling",
     description: "Thermal maps, PUE forecasting, and cooling diagnostics.",
     allowedPaths: [
-      "/", "/builder", "/viewer", "/datacenter", "/solver-status", "/compliance",
+      "/", "/builder", "/viewer", "/datacenter", "/solver-status", "/compliance", "/gpu-usage",
     ],
   },
   hvac: {
@@ -43,7 +43,7 @@ export const TRIAL_TIERS: Record<string, TrialTier> = {
     label: "HVAC & Ventilation",
     description: "Duct simulation, airflow analysis, and compliance.",
     allowedPaths: [
-      "/", "/builder", "/viewer", "/compliance", "/solver-status",
+      "/", "/builder", "/viewer", "/compliance", "/solver-status", "/gpu-usage",
     ],
   },
   automotive: {
@@ -51,7 +51,7 @@ export const TRIAL_TIERS: Record<string, TrialTier> = {
     label: "Automotive & Aerospace",
     description: "External aerodynamics, parameter sweeps, and ML pipeline.",
     allowedPaths: [
-      "/", "/builder", "/viewer", "/ml-pipeline", "/explainability", "/solver-status",
+      "/", "/builder", "/viewer", "/ml-pipeline", "/explainability", "/solver-status", "/gpu-usage",
     ],
   },
   energy: {
@@ -59,7 +59,7 @@ export const TRIAL_TIERS: Record<string, TrialTier> = {
     label: "Energy & Power",
     description: "Turbomachinery, rotating frames, and solver monitoring.",
     allowedPaths: [
-      "/", "/builder", "/viewer", "/solver-status", "/explainability",
+      "/", "/builder", "/viewer", "/solver-status", "/explainability", "/gpu-usage",
     ],
   },
   industrial: {
@@ -67,7 +67,7 @@ export const TRIAL_TIERS: Record<string, TrialTier> = {
     label: "Industrial Process",
     description: "Exhaust optimization, mixing analysis, and compliance.",
     allowedPaths: [
-      "/", "/builder", "/viewer", "/compliance", "/solver-status",
+      "/", "/builder", "/viewer", "/compliance", "/solver-status", "/gpu-usage",
     ],
   },
   other: {
@@ -75,7 +75,7 @@ export const TRIAL_TIERS: Record<string, TrialTier> = {
     label: "General Access",
     description: "Core CFD simulation capabilities.",
     allowedPaths: [
-      "/", "/builder", "/viewer", "/compliance", "/solver-status",
+      "/", "/builder", "/viewer", "/compliance", "/solver-status", "/gpu-usage",
     ],
   },
 };
