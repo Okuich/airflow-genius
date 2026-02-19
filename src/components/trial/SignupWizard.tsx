@@ -3,12 +3,44 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowRight, ArrowLeft, Mail, Lock, User, Building2,
-  Users, AlertCircle, CheckCircle2, Briefcase, ChevronDown,
+  Users, AlertCircle, CheckCircle2, Briefcase, ChevronDown, Brain, Sparkles,
 } from "lucide-react";
 import { ROLE_PROFILES, type RoleProfile } from "./role-data";
 import { getConsentsForRole, type ConsentItem } from "./consent-data";
 
 const COMPANY_SIZES = ["1–10", "11–50", "51–200", "201–500", "500+"];
+
+function getAiAgentTips(role: RoleProfile | null): string[] {
+  const base = ["Ask the Agent to explain any dashboard metric in plain language"];
+  const roleMap: Record<string, string[]> = {
+    "cfd-engineer": [
+      "Say \"Set up a duct simulation with a 90° bend\" to auto-configure mesh and solver",
+      "Ask \"Why is my simulation diverging?\" for convergence diagnostics",
+      "Try \"Recommend mesh refinement for this geometry\" for AI-guided meshing",
+    ],
+    "engineering-manager": [
+      "Ask \"Show me this week's team compute usage\" for instant analytics",
+      "Try \"Generate a compliance summary for Project X\" for stakeholder reports",
+      "Say \"Which simulations are at risk of non-convergence?\" for proactive alerts",
+    ],
+    "facilities-manager": [
+      "Say \"Set up anomaly alerts for Zone A particle counts\" for monitoring",
+      "Ask \"What's the current ISO classification for all cleanrooms?\"",
+      "Try \"Predict PUE for next week\" for cooling efficiency forecasts",
+    ],
+    "rd-director": [
+      "Ask \"Train a surrogate model on last month's simulation data\"",
+      "Try \"Benchmark this design against ASHRAE standards\"",
+      "Say \"Compare performance across all design variants\" for sweeps",
+    ],
+    "product-development": [
+      "Say \"Run a parameter sweep for inlet velocities 3–8 m/s\"",
+      "Ask \"Generate a compliance report for this simulation\"",
+      "Try \"What geometry changes would reduce pressure drop?\"",
+    ],
+  };
+  return [...(roleMap[role?.id ?? ""] ?? []), ...base];
+}
 
 type Step = "role" | "details" | "confirm";
 
@@ -133,6 +165,7 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
 
   /* ── Step 3: Confirmation ── */
   if (step === "confirm") {
+    const aiTips = getAiAgentTips(selectedRole);
     return (
       <div className="text-center py-4">
         <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-primary" />
@@ -141,7 +174,7 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
           We sent a confirmation link to <strong className="text-foreground">{email}</strong>.<br />
           Verify your email to activate your <span className="text-primary font-semibold">90-day free trial</span>.
         </p>
-        <div className="surface-raised rounded-lg border border-border p-4 text-left text-xs text-muted-foreground space-y-1 mb-6">
+        <div className="surface-raised rounded-lg border border-border p-4 text-left text-xs text-muted-foreground space-y-1 mb-4">
           <p><strong className="text-foreground">Role:</strong> {selectedRole?.label}</p>
           <p><strong className="text-foreground">Company:</strong> {companyName}</p>
           {companySize && <p><strong className="text-foreground">Size:</strong> {companySize} employees</p>}
@@ -149,6 +182,26 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
           <p><strong className="text-foreground">Workspace:</strong> Auto-created ✓</p>
           <p><strong className="text-foreground">Trial ends:</strong> {new Date(Date.now() + 90 * 86400000).toLocaleDateString()}</p>
         </div>
+
+        {/* AI Agent first-login tips */}
+        <div className="rounded-lg border border-primary/20 bg-primary/[0.04] p-4 text-left mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Brain className="w-4 h-4 text-primary" />
+            <span className="text-xs font-semibold text-foreground">Your AI Agent is ready</span>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">
+            When you first log in, the AI Agent will greet you with guidance tailored to your role. Here's what to try:
+          </p>
+          <ul className="space-y-2">
+            {aiTips.map((tip, i) => (
+              <li key={i} className="flex items-start gap-2 text-xs">
+                <Sparkles className="w-3 h-3 text-primary mt-0.5 shrink-0" />
+                <span className="text-foreground">{tip}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
         <Link
           to="/auth"
           className="inline-flex items-center gap-2 text-sm text-primary hover:underline font-medium"

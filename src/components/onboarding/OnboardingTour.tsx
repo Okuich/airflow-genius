@@ -1,18 +1,27 @@
 import { useState, useEffect, useCallback } from "react";
-import { X, ChevronRight, ChevronLeft, Rocket, Wind, BarChart3, Brain, ShieldCheck, Cpu, Sparkles } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, Rocket, Wind, BarChart3, Brain, ShieldCheck, Cpu, Sparkles, MessageSquare } from "lucide-react";
 import { createPortal } from "react-dom";
 
 // ── Tour Step Definitions ───────────────────────────────────────────────────
 
 export interface TourStep {
-  target: string;          // CSS selector
+  target: string;          // CSS selector — use "" for centerscreen (no spotlight)
   title: string;
   description: string;
   icon: React.ElementType;
-  position: "top" | "bottom" | "left" | "right";
+  position: "top" | "bottom" | "left" | "right" | "center";
+  highlight?: boolean;     // Extra visual emphasis
 }
 
 const TOUR_STEPS: TourStep[] = [
+  {
+    target: "",
+    title: "Meet Your AI Engineering Agent",
+    description: "FlowForge includes a built-in AI Agent that guides you through every step — from simulation setup to results interpretation. It adapts to your role and experience level. Look for the Agent panel on your dashboard to get started.",
+    icon: Brain,
+    position: "center",
+    highlight: true,
+  },
   {
     target: '[data-tour="metrics-row"]',
     title: "Real-Time Metrics",
@@ -36,10 +45,11 @@ const TOUR_STEPS: TourStep[] = [
   },
   {
     target: '[data-tour="ai-agent"]',
-    title: "AI Engineering Agent",
-    description: "Get AI-powered assistance with mesh generation, boundary condition setup, solver tuning, and result interpretation — guided workflows built for CFD engineers.",
-    icon: Brain,
+    title: "AI Agent — Always Here to Help",
+    description: "Ask it anything: \"Set up a duct simulation\", \"Why is my solve diverging?\", or \"Generate a compliance report\". The Agent handles setup, diagnostics, and results — so you can focus on engineering.",
+    icon: MessageSquare,
     position: "bottom",
+    highlight: true,
   },
   {
     target: '[data-tour="sidebar-nav"]',
@@ -111,9 +121,22 @@ export function OnboardingOverlay({ currentStep, onNext, onPrev, onSkip, totalSt
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    // Center mode — no target element
+    if (!step.target) {
+      const tooltipWidth = 380;
+      setSpotlightStyle({ top: 0, left: 0, width: 0, height: 0 });
+      setTooltipStyle({
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: tooltipWidth,
+      } as any);
+      setVisible(true);
+      return;
+    }
+
     const el = document.querySelector(step.target);
     if (!el) {
-      // Target not found — skip to next or end
       setVisible(false);
       return;
     }
@@ -164,36 +187,48 @@ export function OnboardingOverlay({ currentStep, onNext, onPrev, onSkip, totalSt
   const StepIcon = step.icon;
   const isLast = currentStep === totalSteps - 1;
 
+  const isCenterMode = !step.target;
+
   return createPortal(
     <div className="fixed inset-0 z-[9999]" onClick={onSkip}>
-      {/* Dimmed backdrop with spotlight cutout via box-shadow */}
-      <div
-        className="absolute rounded-xl transition-all duration-300 ease-out"
-        style={{
-          ...spotlightStyle,
-          boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.65)",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* Spotlight ring */}
-      <div
-        className="absolute rounded-xl border-2 border-data-cyan/50 transition-all duration-300 ease-out pointer-events-none"
-        style={spotlightStyle}
-      />
+      {/* Dimmed backdrop */}
+      {isCenterMode ? (
+        <div className="absolute inset-0 bg-black/70 pointer-events-none" />
+      ) : (
+        <>
+          <div
+            className="absolute rounded-xl transition-all duration-300 ease-out"
+            style={{
+              ...spotlightStyle,
+              boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.65)",
+              pointerEvents: "none",
+            }}
+          />
+          <div
+            className={`absolute rounded-xl border-2 transition-all duration-300 ease-out pointer-events-none ${
+              step.highlight ? "border-primary/70 shadow-[0_0_20px_rgba(var(--primary),0.3)]" : "border-data-cyan/50"
+            }`}
+            style={spotlightStyle}
+          />
+        </>
+      )}
 
       {/* Tooltip */}
       {visible && (
         <div
-          className="absolute surface-panel rounded-xl border border-surface-border p-5 shadow-2xl transition-all duration-300 ease-out"
+          className={`absolute surface-panel rounded-xl border p-5 shadow-2xl transition-all duration-300 ease-out ${
+            step.highlight ? "border-primary/30 ring-1 ring-primary/20" : "border-surface-border"
+          }`}
           style={tooltipStyle}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-data-cyan/10">
-                <StepIcon className="w-4 h-4 text-data-cyan" />
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                step.highlight ? "bg-primary/15" : "bg-data-cyan/10"
+              }`}>
+                <StepIcon className={`w-4 h-4 ${step.highlight ? "text-primary" : "text-data-cyan"}`} />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground font-mono">
