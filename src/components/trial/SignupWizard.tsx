@@ -9,6 +9,7 @@ import {
 import { ROLE_PROFILES, type RoleProfile } from "./role-data";
 import { getConsentsForRole, type ConsentItem } from "./consent-data";
 import { getIndustryOnboarding, setTrialIndustry } from "./industry-onboarding";
+import { industryToTierId } from "./trial-tiers";
 
 const COMPANY_SIZES = ["1–10", "11–50", "51–200", "201–500", "500+"];
 
@@ -114,6 +115,7 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
             company_size: companySize || null,
             use_case: useCase || null,
             job_role: selectedRole.label,
+            trial_tier: industryToTierId(industry),
           } as any);
 
         if (trialError) {
