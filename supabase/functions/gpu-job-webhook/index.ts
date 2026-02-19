@@ -16,14 +16,24 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // ┌──────────────────────────────────────────────────────────────────┐
-    // │  STUB: Validate webhook signature from your provider            │
-    // │  e.g. HMAC-SHA256 of body against GPU_PROVIDER_WEBHOOK_SECRET   │
-    // └──────────────────────────────────────────────────────────────────┘
-    // const secret = Deno.env.get("GPU_PROVIDER_WEBHOOK_SECRET");
+    // ── RunPod webhook signature validation (optional) ──
+    // RunPod doesn't sign webhooks by default; if you configure a secret
+    // on the RunPod side, validate it here:
+    // const secret = Deno.env.get("RUNPOD_WEBHOOK_SECRET");
+    // const sig = req.headers.get("x-runpod-signature");
 
     const body = await req.json();
-    const { simulationId, status, gpuHours, durationSeconds, costUsd } = body;
+
+    // RunPod sends: { id, status: "COMPLETED"|"FAILED"|"TIMED_OUT", output: {...} }
+    // Map to our internal shape
+    const simulationId = body.input?.simulation_id ?? body.simulationId;
+    const rawStatus = (body.status ?? "").toUpperCase();
+    const status = rawStatus === "COMPLETED" ? "completed"
+      : (rawStatus === "FAILED" || rawStatus === "TIMED_OUT") ? "failed"
+      : "running";
+    const gpuHours = body.output?.gpu_hours ?? body.gpuHours;
+    const durationSeconds = body.output?.duration_seconds ?? body.durationSeconds;
+    const costUsd = body.output?.cost_usd ?? body.costUsd;
 
     if (!simulationId || !status) {
       return new Response(JSON.stringify({ error: "Missing simulationId or status" }), {
@@ -38,11 +48,10 @@ Deno.serve(async (req) => {
     );
 
     // Update simulation status
-    const newStatus = status === "completed" ? "completed" : status === "failed" ? "failed" : "running";
     await supabase
       .from("simulations")
       .update({
-        status: newStatus,
+        status,
         progress: status === "completed" ? 100 : undefined,
         completed_at: ["completed", "failed"].includes(status) ? new Date().toISOString() : undefined,
       })
@@ -60,7 +69,7 @@ Deno.serve(async (req) => {
         .eq("simulation_id", simulationId);
     }
 
-    console.log(`[gpu-job-webhook] Updated simulation ${simulationId} → ${newStatus}`);
+    console.log(`[gpu-job-webhook] Updated simulation ${simulationId} → ${status}`);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
