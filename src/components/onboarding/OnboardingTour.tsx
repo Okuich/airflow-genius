@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { X, ChevronRight, ChevronLeft, Rocket, Wind, BarChart3, Brain, ShieldCheck, Cpu, Sparkles, MessageSquare } from "lucide-react";
 import { createPortal } from "react-dom";
+import { getIndustryOnboarding } from "@/components/trial/industry-onboarding";
 
 // ── Tour Step Definitions ───────────────────────────────────────────────────
 
@@ -13,52 +14,56 @@ export interface TourStep {
   highlight?: boolean;     // Extra visual emphasis
 }
 
-const TOUR_STEPS: TourStep[] = [
-  {
-    target: "",
-    title: "Meet Your AI Engineering Agent",
-    description: "FlowForge includes a built-in AI Agent that guides you through every step — from simulation setup to results interpretation. It adapts to your role and experience level. Look for the Agent panel on your dashboard to get started.",
-    icon: Brain,
-    position: "center",
-    highlight: true,
-  },
-  {
-    target: '[data-tour="metrics-row"]',
-    title: "Real-Time Metrics",
-    description: "Monitor active simulations, solve times, and compute usage at a glance. These update live as your jobs progress.",
-    icon: BarChart3,
-    position: "bottom",
-  },
-  {
-    target: '[data-tour="residuals"]',
-    title: "Residual Convergence",
-    description: "Track solver convergence in real time. The chart shows continuity, momentum, and energy residuals dropping toward your target thresholds.",
-    icon: Wind,
-    position: "bottom",
-  },
-  {
-    target: '[data-tour="new-sim"]',
-    title: "Create Simulations",
-    description: "Launch the simulation builder to configure mesh, boundary conditions, solver settings, and turbulence models for your HVAC or cleanroom geometries.",
-    icon: Cpu,
-    position: "bottom",
-  },
-  {
-    target: '[data-tour="ai-agent"]',
-    title: "AI Agent — Always Here to Help",
-    description: "Ask it anything: \"Set up a duct simulation\", \"Why is my solve diverging?\", or \"Generate a compliance report\". The Agent handles setup, diagnostics, and results — so you can focus on engineering.",
-    icon: MessageSquare,
-    position: "bottom",
-    highlight: true,
-  },
-  {
-    target: '[data-tour="sidebar-nav"]',
-    title: "Platform Modules",
-    description: "Access the full suite: 3D viewer, compliance engine, cleanroom ISO classification, data center thermal maps, ML pipeline, and GPU solver monitoring.",
-    icon: ShieldCheck,
-    position: "right",
-  },
-];
+function buildTourSteps(): TourStep[] {
+  const industry = getIndustryOnboarding();
+
+  return [
+    {
+      target: "",
+      title: "Meet Your AI Engineering Agent",
+      description: industry.tourOverrides.welcomeDescription,
+      icon: Brain,
+      position: "center",
+      highlight: true,
+    },
+    {
+      target: '[data-tour="metrics-row"]',
+      title: "Real-Time Metrics",
+      description: industry.tourOverrides.metricsDescription,
+      icon: BarChart3,
+      position: "bottom",
+    },
+    {
+      target: '[data-tour="residuals"]',
+      title: "Residual Convergence",
+      description: "Track solver convergence in real time. The chart shows continuity, momentum, and energy residuals dropping toward your target thresholds.",
+      icon: Wind,
+      position: "bottom",
+    },
+    {
+      target: '[data-tour="new-sim"]',
+      title: "Create Simulations",
+      description: "Launch the simulation builder to configure mesh, boundary conditions, solver settings, and turbulence models for your geometries.",
+      icon: Cpu,
+      position: "bottom",
+    },
+    {
+      target: '[data-tour="ai-agent"]',
+      title: "AI Agent — Always Here to Help",
+      description: `Ask it anything: "${industry.aiAgentTips[0]?.replace(/^(Say |Ask |Try )"/, '"') || 'Help me set up a simulation'}". The Agent handles setup, diagnostics, and results — so you can focus on engineering.`,
+      icon: MessageSquare,
+      position: "bottom",
+      highlight: true,
+    },
+    {
+      target: '[data-tour="sidebar-nav"]',
+      title: "Platform Modules",
+      description: `Access the full suite: ${industry.suggestedPages.map((p) => p.label).join(", ")}, and more. Each module is tailored to your ${industry.label} workflow.`,
+      icon: ShieldCheck,
+      position: "right",
+    },
+  ];
+}
 
 // ── Storage Key ─────────────────────────────────────────────────────────────
 
@@ -67,6 +72,7 @@ const TOUR_COMPLETED_KEY = "ff_onboarding_tour_completed";
 export function useOnboardingTour() {
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const tourSteps = useMemo(() => buildTourSteps(), []);
 
   // Auto-start for new users (never completed the tour)
   useEffect(() => {
@@ -90,18 +96,18 @@ export function useOnboardingTour() {
   }, []);
 
   const next = useCallback(() => {
-    if (currentStep < TOUR_STEPS.length - 1) {
+    if (currentStep < tourSteps.length - 1) {
       setCurrentStep((s) => s + 1);
     } else {
       endTour();
     }
-  }, [currentStep, endTour]);
+  }, [currentStep, endTour, tourSteps.length]);
 
   const prev = useCallback(() => {
     if (currentStep > 0) setCurrentStep((s) => s - 1);
   }, [currentStep]);
 
-  return { isActive, currentStep, startTour, endTour, next, prev, totalSteps: TOUR_STEPS.length };
+  return { isActive, currentStep, startTour, endTour, next, prev, totalSteps: tourSteps.length, tourSteps };
 }
 
 // ── Spotlight + Tooltip Overlay ─────────────────────────────────────────────
@@ -112,10 +118,11 @@ interface OnboardingOverlayProps {
   onPrev: () => void;
   onSkip: () => void;
   totalSteps: number;
+  tourSteps: TourStep[];
 }
 
-export function OnboardingOverlay({ currentStep, onNext, onPrev, onSkip, totalSteps }: OnboardingOverlayProps) {
-  const step = TOUR_STEPS[currentStep];
+export function OnboardingOverlay({ currentStep, onNext, onPrev, onSkip, totalSteps, tourSteps }: OnboardingOverlayProps) {
+  const step = tourSteps[currentStep];
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
   const [spotlightStyle, setSpotlightStyle] = useState<React.CSSProperties>({});
   const [visible, setVisible] = useState(false);

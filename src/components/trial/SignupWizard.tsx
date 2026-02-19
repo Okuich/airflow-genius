@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { ROLE_PROFILES, type RoleProfile } from "./role-data";
 import { getConsentsForRole, type ConsentItem } from "./consent-data";
+import { getIndustryOnboarding, setTrialIndustry } from "./industry-onboarding";
 
 const COMPANY_SIZES = ["1–10", "11–50", "51–200", "201–500", "500+"];
 
@@ -21,36 +22,32 @@ const INDUSTRIES = [
   { value: "other", label: "Other" },
 ];
 
-function getAiAgentTips(role: RoleProfile | null): string[] {
+function getAiAgentTips(role: RoleProfile | null, industry: string): string[] {
+  const industryTips = getIndustryOnboarding(industry).aiAgentTips;
   const base = ["Ask the Agent to explain any dashboard metric in plain language"];
   const roleMap: Record<string, string[]> = {
     "cfd-engineer": [
-      "Say \"Set up a duct simulation with a 90° bend\" to auto-configure mesh and solver",
-      "Ask \"Why is my simulation diverging?\" for convergence diagnostics",
-      "Try \"Recommend mesh refinement for this geometry\" for AI-guided meshing",
+      'Ask "Why is my simulation diverging?" for convergence diagnostics',
+      'Try "Recommend mesh refinement for this geometry" for AI-guided meshing',
     ],
     "engineering-manager": [
-      "Ask \"Show me this week's team compute usage\" for instant analytics",
-      "Try \"Generate a compliance summary for Project X\" for stakeholder reports",
-      "Say \"Which simulations are at risk of non-convergence?\" for proactive alerts",
+      'Ask "Show me this week\'s team compute usage" for instant analytics',
+      'Try "Generate a compliance summary for Project X" for stakeholder reports',
     ],
     "facilities-manager": [
-      "Say \"Set up anomaly alerts for Zone A particle counts\" for monitoring",
-      "Ask \"What's the current ISO classification for all cleanrooms?\"",
-      "Try \"Predict PUE for next week\" for cooling efficiency forecasts",
+      'Ask "What\'s the current ISO classification for all cleanrooms?"',
+      'Try "Predict PUE for next week" for cooling efficiency forecasts',
     ],
     "rd-director": [
-      "Ask \"Train a surrogate model on last month's simulation data\"",
-      "Try \"Benchmark this design against ASHRAE standards\"",
-      "Say \"Compare performance across all design variants\" for sweeps",
+      'Ask "Train a surrogate model on last month\'s simulation data"',
+      'Try "Benchmark this design against ASHRAE standards"',
     ],
     "product-development": [
-      "Say \"Run a parameter sweep for inlet velocities 3–8 m/s\"",
-      "Ask \"Generate a compliance report for this simulation\"",
-      "Try \"What geometry changes would reduce pressure drop?\"",
+      'Say "Run a parameter sweep for inlet velocities 3–8 m/s"',
+      'Ask "Generate a compliance report for this simulation"',
     ],
   };
-  return [...(roleMap[role?.id ?? ""] ?? []), ...base];
+  return [...industryTips, ...(roleMap[role?.id ?? ""] ?? []), ...base];
 }
 
 type Step = "role" | "details" | "confirm";
@@ -124,7 +121,8 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
         }
       }
 
-      track("signup_succeeded", { role: selectedRole?.id, company_size: companySize });
+      setTrialIndustry(industry);
+      track("signup_succeeded", { role: selectedRole?.id, industry, company_size: companySize });
       setStep("confirm");
     } catch (err: any) {
       setError(err.message ?? "Signup failed. Please try again.");
@@ -192,7 +190,7 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
 
   /* ── Step 3: Confirmation ── */
   if (step === "confirm") {
-    const aiTips = getAiAgentTips(selectedRole);
+    const aiTips = getAiAgentTips(selectedRole, industry);
     // Fire once when confirmation is viewed
     track("confirmation_viewed", { role: selectedRole?.id });
     return (

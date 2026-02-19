@@ -130,6 +130,7 @@ const Index = () => {
           onPrev={tour.prev}
           onSkip={tour.endTour}
           totalSteps={tour.totalSteps}
+          tourSteps={tour.tourSteps}
         />
       )}
     </div>
