@@ -4,12 +4,22 @@ import { useTrialAnalytics } from "./use-trial-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowRight, ArrowLeft, Mail, Lock, User, Building2,
-  Users, AlertCircle, CheckCircle2, Briefcase, ChevronDown, Brain, Sparkles,
+  Users, AlertCircle, CheckCircle2, Briefcase, ChevronDown, Brain, Sparkles, Factory,
 } from "lucide-react";
 import { ROLE_PROFILES, type RoleProfile } from "./role-data";
 import { getConsentsForRole, type ConsentItem } from "./consent-data";
 
 const COMPANY_SIZES = ["1–10", "11–50", "51–200", "201–500", "500+"];
+
+const INDUSTRIES = [
+  { value: "hvac", label: "HVAC & Ventilation" },
+  { value: "data-center", label: "Data Center Cooling" },
+  { value: "cleanroom", label: "Cleanroom & Pharma" },
+  { value: "industrial", label: "Industrial Process" },
+  { value: "automotive", label: "Automotive & Aerospace" },
+  { value: "energy", label: "Energy & Power" },
+  { value: "other", label: "Other" },
+];
 
 function getAiAgentTips(role: RoleProfile | null): string[] {
   const base = ["Ask the Agent to explain any dashboard metric in plain language"];
@@ -62,6 +72,7 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
   const [displayName, setDisplayName] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [companySize, setCompanySize] = useState("");
+  const [industry, setIndustry] = useState("");
   const [useCase, setUseCase] = useState("");
 
   // Consents
@@ -102,7 +113,7 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
           .insert({
             user_id: authData.user.id,
             company_name: companyName,
-            industry: "HVAC",
+            industry: INDUSTRIES.find((i) => i.value === industry)?.label || industry || "HVAC",
             company_size: companySize || null,
             use_case: useCase || null,
             job_role: selectedRole.label,
@@ -277,6 +288,13 @@ export default function SignupWizard({ onRoleChange }: SignupWizardProps) {
         <Field label="Company Name" icon={Building2}>
           <input type="text" required value={companyName} onChange={(e) => setCompanyName(e.target.value)}
             className="form-input" placeholder="Acme HVAC Systems" />
+        </Field>
+
+        <Field label="Industry" icon={Factory}>
+          <select value={industry} onChange={(e) => setIndustry(e.target.value)} className="form-input appearance-none" required>
+            <option value="">Select your industry</option>
+            {INDUSTRIES.map((i) => <option key={i.value} value={i.value}>{i.label}</option>)}
+          </select>
         </Field>
 
         <Field label="Company Size" icon={Users}>
