@@ -20,6 +20,7 @@ import DataCenterHeatMap from "./pages/DataCenterHeatMap";
 import Auth from "./pages/Auth";
 import Architecture from "./pages/Architecture";
 import TrialSignup from "./pages/TrialSignup";
+import GpuUsage from "./pages/GpuUsage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +63,7 @@ function AppRoutes() {
       <Route path="/cleanroom" element={<ProtectedRoute><CleanroomMetrics /></ProtectedRoute>} />
       <Route path="/datacenter" element={<ProtectedRoute><DataCenterHeatMap /></ProtectedRoute>} />
       <Route path="/architecture" element={<ProtectedRoute><Architecture /></ProtectedRoute>} />
+      <Route path="/gpu-usage" element={<ProtectedRoute><GpuUsage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
