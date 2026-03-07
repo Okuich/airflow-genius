@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   { icon: Lightbulb, label: "IP & Patents", href: "/ip-tracking" },
   { icon: Receipt, label: "Billing", href: "/billing" },
   { icon: Repeat, label: "Data Flywheel", href: "/data-flywheel" },
+  { icon: Code2, label: "API Marketplace", href: "/api-marketplace" },
   { icon: Settings2, label: "Settings", href: "/" },
 ];
 

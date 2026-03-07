@@ -71,6 +71,7 @@ function AppRoutes() {
       <Route path="/ip-tracking" element={<ProtectedRoute><IPTracking /></ProtectedRoute>} />
       <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
       <Route path="/data-flywheel" element={<ProtectedRoute><DataFlywheel /></ProtectedRoute>} />
+      <Route path="/api-marketplace" element={<ProtectedRoute><APIMarketplace /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
