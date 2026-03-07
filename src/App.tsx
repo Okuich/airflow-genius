@@ -21,6 +21,7 @@ import Auth from "./pages/Auth";
 import Architecture from "./pages/Architecture";
 import TrialSignup from "./pages/TrialSignup";
 import GpuUsage from "./pages/GpuUsage";
+import IPTracking from "./pages/IPTracking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
