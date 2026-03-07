@@ -1,6 +1,6 @@
 import {
   Wind, BarChart3, Settings2, FolderOpen, Cpu, HelpCircle, LogOut,
-  Eye, Shield, Brain, Microscope, Gauge, Snowflake, Server, Network, Lock, Lightbulb, Receipt, Repeat, Code2, KeyRound, Package,
+  Eye, Shield, Brain, Microscope, Gauge, Snowflake, Server, Network, Lock, Lightbulb, Receipt, Repeat, Code2, KeyRound, Package, Play,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/modules/tenant";
@@ -25,6 +25,7 @@ const NAV_ITEMS = [
   { icon: Code2, label: "API Marketplace", href: "/api-marketplace" },
   { icon: KeyRound, label: "Developer Portal", href: "/developer-portal" },
   { icon: Package, label: "SDK Generator", href: "/sdk-generator" },
+  { icon: Play, label: "API Playground", href: "/api-playground" },
   { icon: Settings2, label: "Settings", href: "/" },
 ];
 
