@@ -26,6 +26,7 @@ import Billing from "./pages/Billing";
 import DataFlywheel from "./pages/DataFlywheel";
 import APIMarketplace from "./pages/APIMarketplace";
 import DeveloperPortal from "./pages/DeveloperPortal";
+import SDKGenerator from "./pages/SDKGenerator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -74,6 +75,7 @@ function AppRoutes() {
       <Route path="/data-flywheel" element={<ProtectedRoute><DataFlywheel /></ProtectedRoute>} />
       <Route path="/api-marketplace" element={<ProtectedRoute><APIMarketplace /></ProtectedRoute>} />
       <Route path="/developer-portal" element={<ProtectedRoute><DeveloperPortal /></ProtectedRoute>} />
+      <Route path="/sdk-generator" element={<ProtectedRoute><SDKGenerator /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
