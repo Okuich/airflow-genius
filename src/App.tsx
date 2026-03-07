@@ -75,6 +75,7 @@ function AppRoutes() {
       <Route path="/data-flywheel" element={<ProtectedRoute><DataFlywheel /></ProtectedRoute>} />
       <Route path="/api-marketplace" element={<ProtectedRoute><APIMarketplace /></ProtectedRoute>} />
       <Route path="/developer-portal" element={<ProtectedRoute><DeveloperPortal /></ProtectedRoute>} />
+      <Route path="/sdk-generator" element={<ProtectedRoute><SDKGenerator /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
