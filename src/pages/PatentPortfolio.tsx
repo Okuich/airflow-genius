@@ -1081,7 +1081,13 @@ export default function PatentPortfolio() {
             {/* ── Portfolio Tab ─────────────────────────────────────── */}
             <TabsContent value="portfolio" className="space-y-4 mt-4">
               {PATENTS.map(p => (
-                <PatentDetailCard key={p.id} patent={p} />
+                <PatentDetailCard
+                  key={p.id}
+                  patent={p}
+                  currentStatus={getEffectiveStatus(p)}
+                  history={histories[p.id] ?? []}
+                  onChangeStatus={handleOpenStatusChange}
+                />
               ))}
             </TabsContent>
 
