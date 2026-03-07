@@ -1025,6 +1025,26 @@ function PortfolioTimeline({ filter }: { filter: string }) {
 
 export default function PatentPortfolio() {
   const [timelineFilter, setTimelineFilter] = useState("all");
+  const { statuses, histories, loading, changeStatus } = usePatentStatuses();
+  const [statusDialog, setStatusDialog] = useState<{ patent: PatentFiling; currentStatus: FilingStatus } | null>(null);
+
+  const getEffectiveStatus = (patent: PatentFiling): FilingStatus =>
+    statuses[patent.id] ?? patent.status;
+
+  const handleOpenStatusChange = (patent: PatentFiling, currentStatus: FilingStatus) => {
+    setStatusDialog({ patent, currentStatus });
+  };
+
+  const handleConfirmStatusChange = async (toStatus: FilingStatus, notes: string) => {
+    if (!statusDialog) return false;
+    return changeStatus(
+      statusDialog.patent.id,
+      statusDialog.patent.inventionNumber,
+      statusDialog.currentStatus,
+      toStatus,
+      notes
+    );
+  };
 
   return (
     <div className="flex h-screen bg-background dark">
