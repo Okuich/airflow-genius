@@ -1188,6 +1188,17 @@ export default function PatentPortfolio() {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Status Change Dialog */}
+        {statusDialog && (
+          <StatusChangeDialog
+            open={!!statusDialog}
+            onOpenChange={(open) => { if (!open) setStatusDialog(null); }}
+            patent={statusDialog.patent}
+            currentStatus={statusDialog.currentStatus}
+            onConfirm={handleConfirmStatusChange}
+          />
+        )}
       </main>
     </div>
   );
