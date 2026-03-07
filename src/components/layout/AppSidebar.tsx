@@ -1,6 +1,6 @@
 import {
   Wind, BarChart3, Settings2, FolderOpen, Cpu, HelpCircle, LogOut,
-  Eye, Shield, Brain, Microscope, Gauge, Snowflake, Server, Network, Lock, Lightbulb, Receipt, Repeat, Code2, KeyRound,
+  Eye, Shield, Brain, Microscope, Gauge, Snowflake, Server, Network, Lock, Lightbulb, Receipt, Repeat, Code2, KeyRound, Package,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/modules/tenant";
