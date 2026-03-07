@@ -33,8 +33,8 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading, currentOrg } = useAuth();
+function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode; adminOnly?: boolean }) {
+  const { user, loading, currentOrg, currentRole } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -45,6 +45,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
   if (!user) return <Navigate to="/auth" replace />;
+
+  // Admin-only route gating
+  if (adminOnly && currentRole !== "admin" && currentRole !== "owner") {
+    return <Navigate to="/" replace />;
+  }
 
   // Trial tier feature gating
   const orgTier = currentOrg?.tier ?? "full";
