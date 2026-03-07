@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      billing_invoices: {
+        Row: {
+          base_amount_usd: number
+          cpu_hours_used: number
+          created_at: string
+          finalized_at: string | null
+          gpu_hours_used: number
+          id: string
+          line_items: Json
+          organization_id: string
+          overage_amount_usd: number
+          period_end: string
+          period_start: string
+          status: string
+          storage_gb_used: number
+          subscription_id: string | null
+          total_amount_usd: number
+        }
+        Insert: {
+          base_amount_usd?: number
+          cpu_hours_used?: number
+          created_at?: string
+          finalized_at?: string | null
+          gpu_hours_used?: number
+          id?: string
+          line_items?: Json
+          organization_id: string
+          overage_amount_usd?: number
+          period_end: string
+          period_start: string
+          status?: string
+          storage_gb_used?: number
+          subscription_id?: string | null
+          total_amount_usd?: number
+        }
+        Update: {
+          base_amount_usd?: number
+          cpu_hours_used?: number
+          created_at?: string
+          finalized_at?: string | null
+          gpu_hours_used?: number
+          id?: string
+          line_items?: Json
+          organization_id?: string
+          overage_amount_usd?: number
+          period_end?: string
+          period_start?: string
+          status?: string
+          storage_gb_used?: number
+          subscription_id?: string | null
+          total_amount_usd?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "org_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cleanroom_samples: {
         Row: {
           air_change_rate: number
@@ -405,6 +474,54 @@ export type Database = {
           },
         ]
       }
+      org_subscriptions: {
+        Row: {
+          billing_cycle_end: string
+          billing_cycle_start: string
+          created_at: string
+          id: string
+          organization_id: string
+          plan_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          billing_cycle_end?: string
+          billing_cycle_start?: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          plan_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          billing_cycle_end?: string
+          billing_cycle_start?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          plan_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_subscriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           id: string
@@ -466,6 +583,69 @@ export type Database = {
           name?: string
           slug?: string
           tier?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pricing_plans: {
+        Row: {
+          base_price_usd: number
+          billing_period: string
+          created_at: string
+          features: Json
+          id: string
+          included_cpu_hours: number
+          included_gpu_hours: number
+          included_storage_gb: number
+          is_active: boolean
+          max_concurrent_jobs: number
+          max_team_members: number
+          name: string
+          overage_cpu_rate: number
+          overage_gpu_rate: number
+          overage_storage_rate: number
+          slug: string
+          tier_level: number
+          updated_at: string
+        }
+        Insert: {
+          base_price_usd?: number
+          billing_period?: string
+          created_at?: string
+          features?: Json
+          id?: string
+          included_cpu_hours?: number
+          included_gpu_hours?: number
+          included_storage_gb?: number
+          is_active?: boolean
+          max_concurrent_jobs?: number
+          max_team_members?: number
+          name: string
+          overage_cpu_rate?: number
+          overage_gpu_rate?: number
+          overage_storage_rate?: number
+          slug: string
+          tier_level?: number
+          updated_at?: string
+        }
+        Update: {
+          base_price_usd?: number
+          billing_period?: string
+          created_at?: string
+          features?: Json
+          id?: string
+          included_cpu_hours?: number
+          included_gpu_hours?: number
+          included_storage_gb?: number
+          is_active?: boolean
+          max_concurrent_jobs?: number
+          max_team_members?: number
+          name?: string
+          overage_cpu_rate?: number
+          overage_gpu_rate?: number
+          overage_storage_rate?: number
+          slug?: string
+          tier_level?: number
           updated_at?: string
         }
         Relationships: []
@@ -719,6 +899,66 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      usage_meters: {
+        Row: {
+          billable: boolean
+          billing_period_end: string
+          billing_period_start: string
+          id: string
+          metadata: Json
+          meter_type: string
+          organization_id: string
+          quantity: number
+          recorded_at: string
+          simulation_id: string | null
+          unit_price_usd: number
+          user_id: string
+        }
+        Insert: {
+          billable?: boolean
+          billing_period_end: string
+          billing_period_start: string
+          id?: string
+          metadata?: Json
+          meter_type?: string
+          organization_id: string
+          quantity?: number
+          recorded_at?: string
+          simulation_id?: string | null
+          unit_price_usd?: number
+          user_id: string
+        }
+        Update: {
+          billable?: boolean
+          billing_period_end?: string
+          billing_period_start?: string
+          id?: string
+          metadata?: Json
+          meter_type?: string
+          organization_id?: string
+          quantity?: number
+          recorded_at?: string
+          simulation_id?: string | null
+          unit_price_usd?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_meters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usage_meters_simulation_id_fkey"
+            columns: ["simulation_id"]
+            isOneToOne: false
+            referencedRelation: "simulations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
