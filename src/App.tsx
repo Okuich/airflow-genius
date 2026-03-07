@@ -27,6 +27,7 @@ import DataFlywheel from "./pages/DataFlywheel";
 import APIMarketplace from "./pages/APIMarketplace";
 import DeveloperPortal from "./pages/DeveloperPortal";
 import SDKGenerator from "./pages/SDKGenerator";
+import APIPlayground from "./pages/APIPlayground";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
