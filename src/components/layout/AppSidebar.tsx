@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { icon: Receipt, label: "Billing", href: "/billing" },
   { icon: Repeat, label: "Data Flywheel", href: "/data-flywheel" },
   { icon: Code2, label: "API Marketplace", href: "/api-marketplace" },
+  { icon: KeyRound, label: "Developer Portal", href: "/developer-portal" },
   { icon: Settings2, label: "Settings", href: "/" },
 ];
 
