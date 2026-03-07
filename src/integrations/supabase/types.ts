@@ -697,6 +697,85 @@ export type Database = {
         }
         Relationships: []
       }
+      patent_filings: {
+        Row: {
+          created_at: string
+          current_status: string
+          id: string
+          invention_id: string
+          invention_number: string
+          organization_id: string | null
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          created_at?: string
+          current_status?: string
+          id?: string
+          invention_id: string
+          invention_number: string
+          organization_id?: string | null
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          created_at?: string
+          current_status?: string
+          id?: string
+          invention_id?: string
+          invention_number?: string
+          organization_id?: string | null
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patent_filings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patent_status_history: {
+        Row: {
+          changed_at: string
+          changed_by: string
+          filing_id: string
+          from_status: string | null
+          id: string
+          notes: string | null
+          to_status: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by: string
+          filing_id: string
+          from_status?: string | null
+          id?: string
+          notes?: string | null
+          to_status: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string
+          filing_id?: string
+          from_status?: string | null
+          id?: string
+          notes?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patent_status_history_filing_id_fkey"
+            columns: ["filing_id"]
+            isOneToOne: false
+            referencedRelation: "patent_filings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pricing_plans: {
         Row: {
           base_price_usd: number
