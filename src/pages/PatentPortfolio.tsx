@@ -678,12 +678,24 @@ function SummaryCards() {
 
 // ── Patent Detail Card ──────────────────────────────────────────────────
 
-function PatentDetailCard({ patent }: { patent: PatentFiling }) {
+function PatentDetailCard({
+  patent,
+  currentStatus,
+  history,
+  onChangeStatus,
+}: {
+  patent: PatentFiling;
+  currentStatus: FilingStatus;
+  history: StatusHistoryEntry[];
+  onChangeStatus: (patent: PatentFiling, currentStatus: FilingStatus) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
-  const cfg = STATUS_CONFIG[patent.status];
+  const [showHistory, setShowHistory] = useState(false);
+  const cfg = STATUS_CONFIG[currentStatus];
   const StatusIcon = cfg.icon;
   const indClaims = patent.claims.filter(c => c.type === "independent").length;
   const depClaims = patent.claims.filter(c => c.type === "dependent").length;
+  const hasTransitions = ALLOWED_TRANSITIONS[currentStatus].length > 0;
 
   return (
     <div className="surface-raised border border-surface-border rounded-xl overflow-hidden">
@@ -721,6 +733,38 @@ function PatentDetailCard({ patent }: { patent: PatentFiling }) {
       {/* Expanded */}
       {expanded && (
         <div className="px-5 pb-5 space-y-5 border-t border-surface-border pt-4">
+          {/* Status actions bar */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {hasTransitions && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs gap-1.5 h-7"
+                onClick={(e) => { e.stopPropagation(); onChangeStatus(patent, currentStatus); }}
+              >
+                <ArrowRight className="w-3 h-3" />
+                Change Status
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-xs gap-1.5 h-7 text-muted-foreground"
+              onClick={() => setShowHistory(!showHistory)}
+            >
+              <History className="w-3 h-3" />
+              Status History ({history.length})
+            </Button>
+          </div>
+
+          {/* Status history (collapsible) */}
+          {showHistory && (
+            <div className="rounded-lg bg-surface-overlay/30 border border-surface-border p-3">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Status History</p>
+              <StatusHistoryPanel history={history} />
+            </div>
+          )}
+
           {/* Full title */}
           <p className="text-xs text-muted-foreground italic">{patent.title}</p>
 
