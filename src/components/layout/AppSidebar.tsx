@@ -1,6 +1,6 @@
 import {
   Wind, BarChart3, Settings2, FolderOpen, Cpu, HelpCircle, LogOut,
-  Eye, Shield, Brain, Microscope, Gauge, Snowflake, Server, Network, Lock, Lightbulb, Receipt,
+  Eye, Shield, Brain, Microscope, Gauge, Snowflake, Server, Network, Lock, Lightbulb, Receipt, Repeat,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/modules/tenant";
@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { icon: Cpu, label: "GPU Usage", href: "/gpu-usage" },
   { icon: Lightbulb, label: "IP & Patents", href: "/ip-tracking" },
   { icon: Receipt, label: "Billing", href: "/billing" },
+  { icon: Repeat, label: "Data Flywheel", href: "/data-flywheel" },
   { icon: Settings2, label: "Settings", href: "/" },
 ];
 

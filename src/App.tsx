@@ -23,6 +23,7 @@ import TrialSignup from "./pages/TrialSignup";
 import GpuUsage from "./pages/GpuUsage";
 import IPTracking from "./pages/IPTracking";
 import Billing from "./pages/Billing";
+import DataFlywheel from "./pages/DataFlywheel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -68,6 +69,7 @@ function AppRoutes() {
       <Route path="/gpu-usage" element={<ProtectedRoute><GpuUsage /></ProtectedRoute>} />
       <Route path="/ip-tracking" element={<ProtectedRoute><IPTracking /></ProtectedRoute>} />
       <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+      <Route path="/data-flywheel" element={<ProtectedRoute><DataFlywheel /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
