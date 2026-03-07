@@ -1,16 +1,18 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { SEOHead } from "@/components/SEOHead";
 import {
   Shield, FileText, Calendar, Clock, AlertTriangle, CheckCircle2,
-  ChevronDown, ChevronRight, ExternalLink, Lightbulb, TrendingUp,
+  ChevronDown, ChevronRight, Lightbulb, TrendingUp, ArrowRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 
-// ── Data ────────────────────────────────────────────────────────────────
+// ── Data (synced with Patent Portfolio) ─────────────────────────────────
 
 type FilingStatus = "draft" | "provisional_filed" | "full_filed" | "under_review" | "granted" | "abandoned";
 
@@ -20,7 +22,6 @@ interface PatentFiling {
   title: string;
   shortTitle: string;
   status: FilingStatus;
-  inventors: string[];
   filingDate: string | null;
   priorityDate: string | null;
   provisionalExpiry: string | null;
@@ -46,7 +47,6 @@ const PATENTS: PatentFiling[] = [
     title: "Autonomous AI Diagnostics Agent for CFD Simulations with Stateful Multi-Phase Pipeline and Persistent Memory",
     shortTitle: "AI Diagnostics Agent",
     status: "draft",
-    inventors: [],
     filingDate: null,
     priorityDate: null,
     provisionalExpiry: null,
@@ -60,7 +60,7 @@ const PATENTS: PatentFiling[] = [
       "src/modules/cfd/diagnostics/convergence-engine.ts",
       "src/modules/cfd/diagnostics/residual-monitor.ts",
     ],
-    notes: "5-phase pipeline: intent classification → diagnostics → resolution planning → execution → learning. Strongest patent candidate.",
+    notes: "5-phase pipeline: intent → diagnostics → resolution → execution → learning. Strongest patent candidate.",
   },
   {
     id: "inv-002",
@@ -68,7 +68,6 @@ const PATENTS: PatentFiling[] = [
     title: "Automated Regulatory Compliance Pipeline for CFD Results with AI-Synchronized Knowledge Base and Cryptographic Audit Reports",
     shortTitle: "Compliance Pipeline",
     status: "draft",
-    inventors: [],
     filingDate: null,
     priorityDate: null,
     provisionalExpiry: null,
@@ -88,22 +87,85 @@ const PATENTS: PatentFiling[] = [
   {
     id: "inv-003",
     inventionNumber: "INV-003",
+    title: "Progressive Surrogate Model Training Using Automated Feature Extraction and Geometry-Aware Clustering",
+    shortTitle: "Surrogate Model Pipeline",
+    status: "draft",
+    filingDate: null,
+    priorityDate: null,
+    provisionalExpiry: null,
+    estimatedCost: 11000,
+    actualCost: 0,
+    patentCounsel: "TBD",
+    claimsCount: { independent: 3, dependent: 3 },
+    sourceFiles: [
+      "src/modules/cfd/ml-models/feature-extractor.ts",
+      "src/modules/cfd/ml-models/surrogate-model.ts",
+      "src/modules/cfd/ml-models/surrogate-pipeline.ts",
+      "src/modules/cfd/ml-models/model-registry.ts",
+    ],
+    notes: "Data flywheel: the more simulations run, the better the surrogate models become.",
+  },
+  {
+    id: "inv-004",
+    inventionNumber: "INV-004",
+    title: "Multi-Tenant GPU Job Scheduling with Priority-Weighted Fair-Share and CFD-Specific Resource Estimation",
+    shortTitle: "GPU Job Scheduling",
+    status: "draft",
+    filingDate: null,
+    priorityDate: null,
+    provisionalExpiry: null,
+    estimatedCost: 11500,
+    actualCost: 0,
+    patentCounsel: "TBD",
+    claimsCount: { independent: 3, dependent: 6 },
+    sourceFiles: [
+      "src/modules/cfd/compute/gpu-job-scheduler.ts",
+      "src/modules/cfd/compute/compute-usage-service.ts",
+      "src/modules/pricing/pricing-engine.ts",
+    ],
+    notes: "Three-layer moat: CFD-specific classification + priority preemption + tier enforcement.",
+  },
+  {
+    id: "inv-005",
+    inventionNumber: "INV-005",
     title: "Real-Time Cleanroom Anomaly Detection with ISO 14644 Classification and AI Root-Cause Analysis",
     shortTitle: "Cleanroom Anomaly Detection",
     status: "draft",
-    inventors: [],
     filingDate: null,
     priorityDate: null,
     provisionalExpiry: null,
     estimatedCost: 10000,
     actualCost: 0,
     patentCounsel: "TBD",
-    claimsCount: { independent: 2, dependent: 3 },
+    claimsCount: { independent: 3, dependent: 7 },
     sourceFiles: [
       "src/modules/cfd/cleanroom/iso-classifier.ts",
+      "src/modules/cfd/cleanroom/cleanroom-api-client.ts",
+      "supabase/functions/cleanroom-anomaly/index.ts",
       "src/components/cleanroom/AnomalyAlertPanel.tsx",
     ],
-    notes: "Candidate for provisional filing. Niche enough to defend.",
+    notes: "Five-subsystem pipeline. Strong regulatory positioning (FDA 21 CFR Part 11).",
+  },
+  {
+    id: "inv-006",
+    inventionNumber: "INV-006",
+    title: "ML-Guided Progressive Mesh Refinement with Surrogate Model Confidence-Based Adaptation",
+    shortTitle: "ML Mesh Refinement",
+    status: "draft",
+    filingDate: null,
+    priorityDate: null,
+    provisionalExpiry: null,
+    estimatedCost: 12500,
+    actualCost: 0,
+    patentCounsel: "TBD",
+    claimsCount: { independent: 3, dependent: 8 },
+    sourceFiles: [
+      "src/modules/cfd/solver/progressive-mesh-controller.ts",
+      "src/modules/cfd/solver/mesh-refinement-study.ts",
+      "src/modules/cfd/ml-models/surrogate-model.ts",
+      "src/modules/cfd/diagnostics/mesh-quality-analyzer.ts",
+    ],
+    notes: "Three-layer moat: ML-AMR integration + GCI-in-the-loop + self-improving feedback loop.",
   },
 ];
 
@@ -111,13 +173,15 @@ const MILESTONES: InnovationMilestone[] = [
   { date: "2025-11-15", title: "AI Agent Core Architecture", description: "5-phase pipeline design completed and implemented", type: "invention" },
   { date: "2025-12-01", title: "Convergence Diagnostic Engine", description: "OLS log-slope analysis with multi-channel root-cause heuristics", type: "invention" },
   { date: "2025-12-20", title: "Compliance Orchestrator v1", description: "End-to-end pipeline: rules → standards → risk → audit doc", type: "invention" },
-  { date: "2026-01-10", title: "Real-Time Residual Monitor", description: "Streaming analysis with consecutive-window divergence confirmation", type: "invention" },
+  { date: "2026-01-10", title: "Surrogate Pipeline v1", description: "Feature extraction + geometry clustering + retraining loop", type: "invention" },
   { date: "2026-01-25", title: "AI Knowledge Base Sync", description: "Gemini-powered delta analysis for regulatory standard updates", type: "invention" },
-  { date: "2026-02-15", title: "SHA-256 Report Integrity", description: "Cryptographically-verifiable compliance reports with digital signatures", type: "invention" },
-  { date: "2026-02-28", title: "Risk Engine v2 with Historical Trends", description: "Repeat-violation detection, escalation multipliers, category breakdown", type: "invention" },
-  { date: "2026-03-07", title: "Patent Disclosure Documents Generated", description: "INV-001 and INV-002 disclosure docs completed", type: "filing" },
-  { date: "2026-04-07", title: "Target: File Provisionals", description: "File provisional patents for INV-001 and INV-002", type: "deadline" },
-  { date: "2027-04-07", title: "Provisional Expiry (if filed Apr 2026)", description: "Must convert to full utility patent applications", type: "deadline" },
+  { date: "2026-02-05", title: "GPU Job Scheduler", description: "Priority-weighted fair-share with preemption engine", type: "invention" },
+  { date: "2026-02-15", title: "ISO 14644-1 Classifier", description: "Trend-adjusted multi-factor classification engine", type: "invention" },
+  { date: "2026-02-28", title: "Progressive Mesh Controller", description: "Gradient-based AMR with triple termination", type: "invention" },
+  { date: "2026-03-07", title: "All 6 Disclosures Drafted", description: "Complete patent portfolio documentation", type: "filing" },
+  { date: "2026-04-07", title: "Target: File Provisionals", description: "File provisional patents for ID-001 through ID-006", type: "deadline" },
+  { date: "2026-06-01", title: "Target: Prior Art Search", description: "Complete prior art search for all 6 disclosures", type: "milestone" },
+  { date: "2027-04-07", title: "Provisional Expiry", description: "Must convert to full utility patent applications", type: "deadline" },
 ];
 
 // ── Helpers ─────────────────────────────────────────────────────────────
@@ -190,7 +254,6 @@ function PatentCard({ patent }: { patent: PatentFiling }) {
         <CardContent className="pt-0 space-y-4">
           <Separator />
 
-          {/* Claims */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Claims</p>
@@ -204,7 +267,6 @@ function PatentCard({ patent }: { patent: PatentFiling }) {
             </div>
           </div>
 
-          {/* Dates */}
           <div className="grid grid-cols-3 gap-4">
             <div>
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Priority Date</p>
@@ -220,7 +282,6 @@ function PatentCard({ patent }: { patent: PatentFiling }) {
             </div>
           </div>
 
-          {/* Cost */}
           <div>
             <div className="flex justify-between text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
               <span>Cost</span>
@@ -229,7 +290,6 @@ function PatentCard({ patent }: { patent: PatentFiling }) {
             <Progress value={costProgress} className="h-1.5" />
           </div>
 
-          {/* Source files */}
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Key Source Files</p>
             <div className="space-y-1">
@@ -242,7 +302,6 @@ function PatentCard({ patent }: { patent: PatentFiling }) {
             </div>
           </div>
 
-          {/* Notes */}
           {patent.notes && (
             <div className="rounded-lg bg-muted/30 border border-border p-3">
               <p className="text-xs text-muted-foreground">{patent.notes}</p>
@@ -257,6 +316,7 @@ function PatentCard({ patent }: { patent: PatentFiling }) {
 // ── Page ─────────────────────────────────────────────────────────────────
 
 export default function IPTracking() {
+  const navigate = useNavigate();
   const totalEstimated = PATENTS.reduce((s, p) => s + p.estimatedCost, 0);
   const totalSpent = PATENTS.reduce((s, p) => s + p.actualCost, 0);
   const totalClaims = PATENTS.reduce((s, p) => s + p.claimsCount.independent + p.claimsCount.dependent, 0);
@@ -275,11 +335,27 @@ export default function IPTracking() {
       <main className="flex-1 overflow-y-auto">
         {/* Header */}
         <header className="border-b border-border px-8 py-6">
-          <div className="flex items-center gap-3 mb-1">
-            <Shield className="w-5 h-5 text-primary" />
-            <h1 className="text-xl font-semibold text-foreground tracking-tight">Intellectual Property</h1>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <Shield className="w-5 h-5 text-primary" />
+                <h1 className="text-xl font-semibold text-foreground tracking-tight">Intellectual Property</h1>
+                <Badge className="text-[10px] px-2 py-0 bg-primary/15 text-primary border-0">
+                  {PATENTS.length} Disclosures
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">Track patent filings, innovation milestones, and IP portfolio value.</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => navigate("/patent-portfolio")}
+            >
+              Full Portfolio Dashboard
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
           </div>
-          <p className="text-sm text-muted-foreground">Track patent filings, innovation milestones, and IP portfolio value.</p>
         </header>
 
         <div className="px-8 py-6 space-y-8 max-w-6xl">
@@ -329,9 +405,19 @@ export default function IPTracking() {
 
             {/* Patents (3 cols) */}
             <div className="lg:col-span-3 space-y-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Lightbulb className="w-4 h-4 text-primary" />
-                <h2 className="text-sm font-semibold text-foreground">Patent Portfolio</h2>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-primary" />
+                  <h2 className="text-sm font-semibold text-foreground">Patent Portfolio</h2>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground hover:text-foreground gap-1.5 h-7"
+                  onClick={() => navigate("/patent-portfolio")}
+                >
+                  Detailed view <ArrowRight className="w-3 h-3" />
+                </Button>
               </div>
               {PATENTS.map((p) => (
                 <PatentCard key={p.id} patent={p} />
@@ -346,7 +432,6 @@ export default function IPTracking() {
               </div>
 
               <div className="relative">
-                {/* Vertical line */}
                 <div className="absolute left-[7px] top-2 bottom-2 w-px bg-border" />
 
                 <div className="space-y-4">
@@ -354,7 +439,6 @@ export default function IPTracking() {
                     const isPast = new Date(m.date) <= new Date();
                     return (
                       <div key={i} className="relative flex gap-4 pl-6">
-                        {/* Dot */}
                         <div
                           className={`absolute left-0 top-1.5 w-[15px] h-[15px] rounded-full border-2 border-background ${MILESTONE_DOT[m.type]} ${
                             !isPast ? "opacity-50" : ""
