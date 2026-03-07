@@ -25,6 +25,7 @@ import IPTracking from "./pages/IPTracking";
 import Billing from "./pages/Billing";
 import DataFlywheel from "./pages/DataFlywheel";
 import APIMarketplace from "./pages/APIMarketplace";
+import DeveloperPortal from "./pages/DeveloperPortal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
