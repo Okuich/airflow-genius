@@ -14,6 +14,116 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          organization_id: string
+          rate_limit_per_minute: number
+          scopes: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name: string
+          organization_id: string
+          rate_limit_per_minute?: number
+          scopes?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          organization_id?: string
+          rate_limit_per_minute?: number
+          scopes?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_keys_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_usage_logs: {
+        Row: {
+          api_key_id: string
+          endpoint: string
+          id: string
+          latency_ms: number
+          method: string
+          organization_id: string
+          recorded_at: string
+          request_size_bytes: number
+          response_size_bytes: number
+          status_code: number
+        }
+        Insert: {
+          api_key_id: string
+          endpoint: string
+          id?: string
+          latency_ms?: number
+          method?: string
+          organization_id: string
+          recorded_at?: string
+          request_size_bytes?: number
+          response_size_bytes?: number
+          status_code?: number
+        }
+        Update: {
+          api_key_id?: string
+          endpoint?: string
+          id?: string
+          latency_ms?: number
+          method?: string
+          organization_id?: string
+          recorded_at?: string
+          request_size_bytes?: number
+          response_size_bytes?: number
+          status_code?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_usage_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "api_usage_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       billing_invoices: {
         Row: {
           base_amount_usd: number

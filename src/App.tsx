@@ -25,6 +25,7 @@ import IPTracking from "./pages/IPTracking";
 import Billing from "./pages/Billing";
 import DataFlywheel from "./pages/DataFlywheel";
 import APIMarketplace from "./pages/APIMarketplace";
+import DeveloperPortal from "./pages/DeveloperPortal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +73,7 @@ function AppRoutes() {
       <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
       <Route path="/data-flywheel" element={<ProtectedRoute><DataFlywheel /></ProtectedRoute>} />
       <Route path="/api-marketplace" element={<ProtectedRoute><APIMarketplace /></ProtectedRoute>} />
+      <Route path="/developer-portal" element={<ProtectedRoute><DeveloperPortal /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
