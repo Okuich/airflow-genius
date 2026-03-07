@@ -384,7 +384,258 @@ function noveltyStars(score: number) {
   return "●".repeat(score) + "○".repeat(5 - score);
 }
 
-// ── Summary Stats ───────────────────────────────────────────────────────
+// ── Filing Status Transitions ────────────────────────────────────────────
+
+const STATUS_ORDER: FilingStatus[] = ["draft", "provisional_filed", "full_filed", "under_review", "granted"];
+
+const ALLOWED_TRANSITIONS: Record<FilingStatus, FilingStatus[]> = {
+  draft: ["provisional_filed", "abandoned"],
+  provisional_filed: ["full_filed", "abandoned"],
+  full_filed: ["under_review", "abandoned"],
+  under_review: ["granted", "abandoned"],
+  granted: [],
+  abandoned: ["draft"],
+};
+
+interface StatusHistoryEntry {
+  id: string;
+  from_status: string | null;
+  to_status: string;
+  changed_by: string;
+  notes: string | null;
+  changed_at: string;
+}
+
+function usePatentStatuses() {
+  const [statuses, setStatuses] = useState<Record<string, FilingStatus>>({});
+  const [histories, setHistories] = useState<Record<string, StatusHistoryEntry[]>>({});
+  const [loading, setLoading] = useState(true);
+
+  const fetchStatuses = useCallback(async () => {
+    const { data: filings } = await supabase
+      .from("patent_filings")
+      .select("invention_id, current_status, id");
+
+    if (filings) {
+      const map: Record<string, FilingStatus> = {};
+      filings.forEach((f: any) => { map[f.invention_id] = f.current_status as FilingStatus; });
+      setStatuses(map);
+
+      // Fetch history for all filings
+      const filingIds = filings.map((f: any) => f.id);
+      if (filingIds.length > 0) {
+        const { data: history } = await supabase
+          .from("patent_status_history")
+          .select("*")
+          .in("filing_id", filingIds)
+          .order("changed_at", { ascending: false });
+
+        if (history) {
+          const histMap: Record<string, StatusHistoryEntry[]> = {};
+          for (const f of filings) {
+            histMap[(f as any).invention_id] = (history as any[]).filter(
+              (h: any) => h.filing_id === (f as any).id
+            );
+          }
+          setHistories(histMap);
+        }
+      }
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchStatuses(); }, [fetchStatuses]);
+
+  const changeStatus = async (
+    inventionId: string,
+    inventionNumber: string,
+    fromStatus: FilingStatus,
+    toStatus: FilingStatus,
+    notes: string
+  ) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("You must be signed in to change filing status");
+      return false;
+    }
+
+    // Upsert filing record
+    const { data: filing, error: filingErr } = await supabase
+      .from("patent_filings")
+      .upsert(
+        {
+          invention_id: inventionId,
+          invention_number: inventionNumber,
+          current_status: toStatus,
+          updated_by: user.id,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "invention_id" }
+      )
+      .select("id")
+      .single();
+
+    if (filingErr || !filing) {
+      toast.error("Failed to update status: " + (filingErr?.message ?? "Unknown error"));
+      return false;
+    }
+
+    // Insert history
+    const { error: histErr } = await supabase
+      .from("patent_status_history")
+      .insert({
+        filing_id: filing.id,
+        from_status: fromStatus,
+        to_status: toStatus,
+        changed_by: user.id,
+        notes: notes || null,
+      });
+
+    if (histErr) {
+      toast.error("Status updated but failed to log history: " + histErr.message);
+    }
+
+    toast.success(`Status changed to ${STATUS_CONFIG[toStatus].label}`);
+    await fetchStatuses();
+    return true;
+  };
+
+  return { statuses, histories, loading, changeStatus };
+}
+
+// ── Status Change Dialog ────────────────────────────────────────────────
+
+function StatusChangeDialog({
+  open,
+  onOpenChange,
+  patent,
+  currentStatus,
+  onConfirm,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  patent: PatentFiling;
+  currentStatus: FilingStatus;
+  onConfirm: (toStatus: FilingStatus, notes: string) => Promise<boolean>;
+}) {
+  const [toStatus, setToStatus] = useState<FilingStatus | "">("");
+  const [notes, setNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const allowed = ALLOWED_TRANSITIONS[currentStatus];
+
+  const handleSubmit = async () => {
+    if (!toStatus) return;
+    setSubmitting(true);
+    const ok = await onConfirm(toStatus as FilingStatus, notes);
+    setSubmitting(false);
+    if (ok) {
+      setToStatus("");
+      setNotes("");
+      onOpenChange(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-sm font-semibold">
+            Change Filing Status — {patent.shortTitle}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Current Status</p>
+            <Badge className={`text-xs px-3 py-1 ${STATUS_CONFIG[currentStatus].bg} ${STATUS_CONFIG[currentStatus].text} border-0`}>
+              {STATUS_CONFIG[currentStatus].label}
+            </Badge>
+          </div>
+
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">New Status</p>
+            {allowed.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No transitions available from this status.</p>
+            ) : (
+              <Select value={toStatus} onValueChange={(v) => setToStatus(v as FilingStatus)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select new status…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allowed.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {STATUS_CONFIG[s].label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Notes (optional)</p>
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Reason for status change, filing details, counsel notes…"
+              className="h-20 text-xs"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button
+            size="sm"
+            onClick={handleSubmit}
+            disabled={!toStatus || submitting}
+          >
+            {submitting ? "Updating…" : "Confirm Change"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── Status History Panel ────────────────────────────────────────────────
+
+function StatusHistoryPanel({ history }: { history: StatusHistoryEntry[] }) {
+  if (history.length === 0) {
+    return (
+      <p className="text-xs text-muted-foreground italic">No status changes recorded yet.</p>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {history.map((h) => (
+        <div key={h.id} className="flex items-start gap-3 text-xs">
+          <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+          <div className="flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              {h.from_status && (
+                <>
+                  <Badge className={`text-[9px] px-1.5 py-0 ${STATUS_CONFIG[h.from_status as FilingStatus]?.bg ?? "bg-muted"} ${STATUS_CONFIG[h.from_status as FilingStatus]?.text ?? "text-muted-foreground"} border-0`}>
+                    {STATUS_CONFIG[h.from_status as FilingStatus]?.label ?? h.from_status}
+                  </Badge>
+                  <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                </>
+              )}
+              <Badge className={`text-[9px] px-1.5 py-0 ${STATUS_CONFIG[h.to_status as FilingStatus]?.bg ?? "bg-muted"} ${STATUS_CONFIG[h.to_status as FilingStatus]?.text ?? "text-muted-foreground"} border-0`}>
+                {STATUS_CONFIG[h.to_status as FilingStatus]?.label ?? h.to_status}
+              </Badge>
+              <span className="text-[10px] font-mono text-muted-foreground">
+                {new Date(h.changed_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+              </span>
+            </div>
+            {h.notes && <p className="text-muted-foreground mt-0.5">{h.notes}</p>}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
 
 function SummaryCards() {
   const totalClaims = PATENTS.reduce((s, p) => s + p.claims.length, 0);
