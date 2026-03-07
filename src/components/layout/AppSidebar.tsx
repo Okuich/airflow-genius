@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { icon: Cpu, label: "GPU Usage", href: "/gpu-usage" },
   { icon: Lightbulb, label: "IP & Patents", href: "/ip-tracking" },
   { icon: Receipt, label: "Billing", href: "/billing" },
+  { icon: Repeat, label: "Data Flywheel", href: "/data-flywheel" },
   { icon: Settings2, label: "Settings", href: "/" },
 ];
 
