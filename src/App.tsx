@@ -67,6 +67,7 @@ function AppRoutes() {
       <Route path="/architecture" element={<ProtectedRoute><Architecture /></ProtectedRoute>} />
       <Route path="/gpu-usage" element={<ProtectedRoute><GpuUsage /></ProtectedRoute>} />
       <Route path="/ip-tracking" element={<ProtectedRoute><IPTracking /></ProtectedRoute>} />
+      <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

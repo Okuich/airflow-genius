@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { icon: Network, label: "Architecture", href: "/architecture" },
   { icon: Cpu, label: "GPU Usage", href: "/gpu-usage" },
   { icon: Lightbulb, label: "IP & Patents", href: "/ip-tracking" },
+  { icon: Receipt, label: "Billing", href: "/billing" },
   { icon: Settings2, label: "Settings", href: "/" },
 ];
 
