@@ -25,6 +25,7 @@ const NAV_ITEMS = [
   { icon: Code2, label: "API Marketplace", href: "/api-marketplace" },
   { icon: KeyRound, label: "Developer Portal", href: "/developer-portal" },
   { icon: Package, label: "SDK Generator", href: "/sdk-generator" },
+  { icon: Play, label: "API Playground", href: "/api-playground" },
   { icon: Settings2, label: "Settings", href: "/" },
 ];
 
