@@ -24,6 +24,7 @@ import GpuUsage from "./pages/GpuUsage";
 import IPTracking from "./pages/IPTracking";
 import Billing from "./pages/Billing";
 import DataFlywheel from "./pages/DataFlywheel";
+import APIMarketplace from "./pages/APIMarketplace";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
