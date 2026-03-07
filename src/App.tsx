@@ -33,8 +33,8 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading, currentOrg } = useAuth();
+function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode; adminOnly?: boolean }) {
+  const { user, loading, currentOrg, currentRole } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -45,6 +45,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
   if (!user) return <Navigate to="/auth" replace />;
+
+  // Admin-only route gating
+  if (adminOnly && currentRole !== "admin" && currentRole !== "owner") {
+    return <Navigate to="/" replace />;
+  }
 
   // Trial tier feature gating
   const orgTier = currentOrg?.tier ?? "full";
@@ -72,14 +77,14 @@ function AppRoutes() {
       <Route path="/datacenter" element={<ProtectedRoute><DataCenterHeatMap /></ProtectedRoute>} />
       <Route path="/architecture" element={<ProtectedRoute><Architecture /></ProtectedRoute>} />
       <Route path="/gpu-usage" element={<ProtectedRoute><GpuUsage /></ProtectedRoute>} />
-      <Route path="/ip-tracking" element={<ProtectedRoute><IPTracking /></ProtectedRoute>} />
+      <Route path="/ip-tracking" element={<ProtectedRoute adminOnly><IPTracking /></ProtectedRoute>} />
       <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
       <Route path="/data-flywheel" element={<ProtectedRoute><DataFlywheel /></ProtectedRoute>} />
       <Route path="/api-marketplace" element={<ProtectedRoute><APIMarketplace /></ProtectedRoute>} />
       <Route path="/developer-portal" element={<ProtectedRoute><DeveloperPortal /></ProtectedRoute>} />
       <Route path="/sdk-generator" element={<ProtectedRoute><SDKGenerator /></ProtectedRoute>} />
       <Route path="/api-playground" element={<ProtectedRoute><APIPlayground /></ProtectedRoute>} />
-      <Route path="/patent-portfolio" element={<ProtectedRoute><PatentPortfolio /></ProtectedRoute>} />
+      <Route path="/patent-portfolio" element={<ProtectedRoute adminOnly><PatentPortfolio /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
