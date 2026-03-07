@@ -1,17 +1,23 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { SEOHead } from "@/components/SEOHead";
 import {
   Shield, FileText, Calendar, Clock, AlertTriangle, CheckCircle2,
   ChevronDown, ChevronRight, Lightbulb, TrendingUp, Link2,
-  BarChart3, Target, Layers, GitBranch, Filter, ArrowRight,
+  BarChart3, Target, Layers, GitBranch, Filter, ArrowRight, History,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // ── Types ───────────────────────────────────────────────────────────────
 
