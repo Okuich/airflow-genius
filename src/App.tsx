@@ -29,6 +29,7 @@ import DeveloperPortal from "./pages/DeveloperPortal";
 import SDKGenerator from "./pages/SDKGenerator";
 import APIPlayground from "./pages/APIPlayground";
 import PatentPortfolio from "./pages/PatentPortfolio";
+import TradeSecretRegistry from "./pages/TradeSecretRegistry";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
