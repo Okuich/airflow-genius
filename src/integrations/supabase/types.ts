@@ -997,6 +997,103 @@ export type Database = {
           },
         ]
       }
+      trade_secret_access_log: {
+        Row: {
+          accessed_at: string
+          action: string
+          id: string
+          ip_address: string | null
+          trade_secret_id: string
+          user_id: string
+        }
+        Insert: {
+          accessed_at?: string
+          action?: string
+          id?: string
+          ip_address?: string | null
+          trade_secret_id: string
+          user_id: string
+        }
+        Update: {
+          accessed_at?: string
+          action?: string
+          id?: string
+          ip_address?: string | null
+          trade_secret_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_secret_access_log_trade_secret_id_fkey"
+            columns: ["trade_secret_id"]
+            isOneToOne: false
+            referencedRelation: "trade_secrets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trade_secrets: {
+        Row: {
+          access_level: string
+          category: string
+          classification: string
+          created_at: string
+          created_by: string
+          description: string
+          encrypted_content: string
+          encryption_iv: string
+          id: string
+          last_accessed_at: string | null
+          last_accessed_by: string | null
+          organization_id: string
+          related_invention: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          access_level?: string
+          category?: string
+          classification?: string
+          created_at?: string
+          created_by: string
+          description: string
+          encrypted_content?: string
+          encryption_iv?: string
+          id?: string
+          last_accessed_at?: string | null
+          last_accessed_by?: string | null
+          organization_id: string
+          related_invention?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          access_level?: string
+          category?: string
+          classification?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          encrypted_content?: string
+          encryption_iv?: string
+          id?: string
+          last_accessed_at?: string | null
+          last_accessed_by?: string | null
+          organization_id?: string
+          related_invention?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_secrets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_jobs: {
         Row: {
           completed_at: string | null

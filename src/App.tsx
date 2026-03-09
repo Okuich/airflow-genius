@@ -29,6 +29,7 @@ import DeveloperPortal from "./pages/DeveloperPortal";
 import SDKGenerator from "./pages/SDKGenerator";
 import APIPlayground from "./pages/APIPlayground";
 import PatentPortfolio from "./pages/PatentPortfolio";
+import TradeSecretRegistry from "./pages/TradeSecretRegistry";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -85,6 +86,7 @@ function AppRoutes() {
       <Route path="/sdk-generator" element={<ProtectedRoute><SDKGenerator /></ProtectedRoute>} />
       <Route path="/api-playground" element={<ProtectedRoute><APIPlayground /></ProtectedRoute>} />
       <Route path="/patent-portfolio" element={<ProtectedRoute adminOnly><PatentPortfolio /></ProtectedRoute>} />
+      <Route path="/trade-secrets" element={<ProtectedRoute adminOnly><TradeSecretRegistry /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
