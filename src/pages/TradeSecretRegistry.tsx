@@ -211,7 +211,43 @@ export default function TradeSecretRegistry() {
     }
   };
 
-  const stats = {
+  const handleSeed = async () => {
+    if (!currentOrg) return;
+    const existingTitles = new Set(secrets.map((s) => s.title));
+    const toSeed = TRADE_SECRET_SEEDS.filter((s) => !existingTitles.has(s.title));
+    if (toSeed.length === 0) {
+      toast.info("Registry already contains all 54 redaction-guide items");
+      return;
+    }
+    setSeeding(true);
+    setSeedProgress(0);
+    let success = 0;
+    let failed = 0;
+    for (let i = 0; i < toSeed.length; i++) {
+      const item = toSeed[i];
+      try {
+        const { data } = await supabase.functions.invoke("trade-secret-vault", {
+          body: {
+            action: "encrypt_and_store",
+            organization_id: currentOrg.id,
+            ...item,
+          },
+        });
+        if (data?.success) success++;
+        else failed++;
+      } catch {
+        failed++;
+      }
+      setSeedProgress(i + 1);
+    }
+    setSeeding(false);
+    setSeedProgress(0);
+    toast.success(
+      `Seeded ${success} of ${toSeed.length} trade secrets${failed ? ` (${failed} failed)` : ""}`
+    );
+    fetchSecrets();
+  };
+
     total: secrets.length,
     topSecret: secrets.filter((s) => s.classification === "top_secret").length,
     restricted: secrets.filter((s) => s.classification === "restricted").length,
