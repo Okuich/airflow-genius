@@ -30,6 +30,7 @@ import SDKGenerator from "./pages/SDKGenerator";
 import APIPlayground from "./pages/APIPlayground";
 import PatentPortfolio from "./pages/PatentPortfolio";
 import TradeSecretRegistry from "./pages/TradeSecretRegistry";
+import DevClaimOrg from "./pages/DevClaimOrg";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
