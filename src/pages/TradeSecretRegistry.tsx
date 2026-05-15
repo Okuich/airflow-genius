@@ -284,6 +284,18 @@ export default function TradeSecretRegistry() {
                 </div>
               </div>
 
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleSeed}
+                  disabled={seeding}
+                  className="gap-2 border-data-cyan/40 text-data-cyan hover:bg-data-cyan/10"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {seeding
+                    ? `Encrypting ${seedProgress}/${TRADE_SECRET_SEEDS.length}...`
+                    : "Seed from Redaction Guide"}
+                </Button>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="gap-2 bg-data-red hover:bg-data-red/80">
