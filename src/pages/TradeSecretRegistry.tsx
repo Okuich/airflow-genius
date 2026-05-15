@@ -248,6 +248,7 @@ export default function TradeSecretRegistry() {
     fetchSecrets();
   };
 
+  const stats = {
     total: secrets.length,
     topSecret: secrets.filter((s) => s.classification === "top_secret").length,
     restricted: secrets.filter((s) => s.classification === "restricted").length,
