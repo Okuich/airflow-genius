@@ -91,6 +91,8 @@ export default function TradeSecretRegistry() {
   const [revealedContent, setRevealedContent] = useState<Record<string, string>>({});
   const [revealingId, setRevealingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
+  const [seedProgress, setSeedProgress] = useState(0);
 
   // Form state
   const [form, setForm] = useState({
