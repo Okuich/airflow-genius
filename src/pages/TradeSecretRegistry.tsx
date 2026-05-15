@@ -429,6 +429,7 @@ export default function TradeSecretRegistry() {
                   </div>
                 </DialogContent>
               </Dialog>
+              </div>
             </div>
           </div>
 
