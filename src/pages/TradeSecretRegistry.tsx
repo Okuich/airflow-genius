@@ -18,7 +18,9 @@ import {
   KeyRound,
   Clock,
   AlertTriangle,
+  Sparkles,
 } from "lucide-react";
+import { TRADE_SECRET_SEEDS } from "./trade-secret-seed-data";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,6 +91,8 @@ export default function TradeSecretRegistry() {
   const [revealedContent, setRevealedContent] = useState<Record<string, string>>({});
   const [revealingId, setRevealingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
+  const [seedProgress, setSeedProgress] = useState(0);
 
   // Form state
   const [form, setForm] = useState({
@@ -207,6 +211,43 @@ export default function TradeSecretRegistry() {
     }
   };
 
+  const handleSeed = async () => {
+    if (!currentOrg) return;
+    const existingTitles = new Set(secrets.map((s) => s.title));
+    const toSeed = TRADE_SECRET_SEEDS.filter((s) => !existingTitles.has(s.title));
+    if (toSeed.length === 0) {
+      toast.info("Registry already contains all 54 redaction-guide items");
+      return;
+    }
+    setSeeding(true);
+    setSeedProgress(0);
+    let success = 0;
+    let failed = 0;
+    for (let i = 0; i < toSeed.length; i++) {
+      const item = toSeed[i];
+      try {
+        const { data } = await supabase.functions.invoke("trade-secret-vault", {
+          body: {
+            action: "encrypt_and_store",
+            organization_id: currentOrg.id,
+            ...item,
+          },
+        });
+        if (data?.success) success++;
+        else failed++;
+      } catch {
+        failed++;
+      }
+      setSeedProgress(i + 1);
+    }
+    setSeeding(false);
+    setSeedProgress(0);
+    toast.success(
+      `Seeded ${success} of ${toSeed.length} trade secrets${failed ? ` (${failed} failed)` : ""}`
+    );
+    fetchSecrets();
+  };
+
   const stats = {
     total: secrets.length,
     topSecret: secrets.filter((s) => s.classification === "top_secret").length,
@@ -243,6 +284,18 @@ export default function TradeSecretRegistry() {
                 </div>
               </div>
 
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleSeed}
+                  disabled={seeding}
+                  className="gap-2 border-data-cyan/40 text-data-cyan hover:bg-data-cyan/10"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {seeding
+                    ? `Encrypting ${seedProgress}/${TRADE_SECRET_SEEDS.length}...`
+                    : "Seed from Redaction Guide"}
+                </Button>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="gap-2 bg-data-red hover:bg-data-red/80">
@@ -376,6 +429,7 @@ export default function TradeSecretRegistry() {
                   </div>
                 </DialogContent>
               </Dialog>
+              </div>
             </div>
           </div>
 
