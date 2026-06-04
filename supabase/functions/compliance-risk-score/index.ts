@@ -100,6 +100,17 @@ function computeRisk(findings: { status: string; riskLevel: string }[]) {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  const _sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: authHeader } } });
+  const { data: _c, error: _ce } = await _sb.auth.getClaims(authHeader.replace("Bearer ", ""));
+  if (_ce || !_c?.claims) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+
+
   try {
     if (req.method !== "GET") {
       return new Response(JSON.stringify({ error: "Method not allowed. Use GET." }), {
