@@ -21,15 +21,15 @@ export async function reportError(input: ReportInput): Promise<void> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return; // RLS requires authenticated; skip anonymous
 
-    await supabase.from("client_error_log").insert({
+    await supabase.from("client_error_log").insert([{
       user_id: user.id,
       route: typeof window !== "undefined" ? window.location.pathname : null,
       message: input.message.slice(0, 2000),
       stack: input.stack?.slice(0, 8000) ?? null,
       user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 500) : null,
       severity: input.severity ?? "error",
-      context: input.context ?? {},
-    });
+      context: (input.context ?? {}) as never,
+    }]);
   } catch {
     // intentional: never let error reporter throw
   }
