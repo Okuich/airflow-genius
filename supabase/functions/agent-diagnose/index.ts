@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { checkRateLimit, rateLimitedResponse } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -35,6 +36,14 @@ serve(async (req) => {
   if (_ce || !_c?.claims) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
+
+  // Rate limit: 20 calls/min per user
+  const _userId = (_c.claims as { sub?: string }).sub ?? "anon";
+  if (!(await checkRateLimit({ key: `agent-diagnose:${_userId}`, limit: 20, windowSeconds: 60 }))) {
+    return rateLimitedResponse(corsHeaders);
+  }
+
+
 
 
   try {
