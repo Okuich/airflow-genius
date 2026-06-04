@@ -96,6 +96,11 @@ function AppRoutes() {
 
 function App() {
   useEffect(() => {
+    // Install global error reporter (sends to client_error_log for admins to review)
+    void import("@/lib/error-reporter").then(({ installGlobalErrorHandlers }) =>
+      installGlobalErrorHandlers()
+    );
+
     const handleRejection = (event: PromiseRejectionEvent) => {
       console.error("Unhandled rejection:", event.reason);
       toast.error("An unexpected error occurred. Please try again.");

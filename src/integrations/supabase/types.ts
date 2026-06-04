@@ -234,6 +234,45 @@ export type Database = {
           },
         ]
       }
+      client_error_log: {
+        Row: {
+          context: Json
+          created_at: string
+          id: string
+          message: string
+          organization_id: string | null
+          route: string | null
+          severity: string
+          stack: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context?: Json
+          created_at?: string
+          id?: string
+          message: string
+          organization_id?: string | null
+          route?: string | null
+          severity?: string
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context?: Json
+          created_at?: string
+          id?: string
+          message?: string
+          organization_id?: string | null
+          route?: string | null
+          severity?: string
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       compliance_knowledge_sync: {
         Row: {
           entry_id: string
@@ -863,6 +902,30 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      rate_limit_buckets: {
+        Row: {
+          bucket_key: string
+          count: number
+          created_at: string
+          id: string
+          window_start: string
+        }
+        Insert: {
+          bucket_key: string
+          count?: number
+          created_at?: string
+          id?: string
+          window_start: string
+        }
+        Update: {
+          bucket_key?: string
+          count?: number
+          created_at?: string
+          id?: string
+          window_start?: string
         }
         Relationships: []
       }
