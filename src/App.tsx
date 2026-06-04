@@ -30,6 +30,8 @@ import SDKGenerator from "./pages/SDKGenerator";
 import APIPlayground from "./pages/APIPlayground";
 import PatentPortfolio from "./pages/PatentPortfolio";
 import TradeSecretRegistry from "./pages/TradeSecretRegistry";
+import { Seo } from "@/components/Seo";
+import { ROUTE_META, NOT_FOUND_META } from "@/lib/route-meta";
 
 import NotFound from "./pages/NotFound";
 
@@ -63,9 +65,17 @@ function ProtectedRoute({ children, adminOnly = false }: { children: React.React
   return <>{children}</>;
 }
 
+function RouteSeo() {
+  const { pathname } = useLocation();
+  const meta = ROUTE_META[pathname] ?? NOT_FOUND_META;
+  return <Seo title={meta.title} description={meta.description} canonical={meta.canonical} />;
+}
+
 function AppRoutes() {
   return (
-    <Routes>
+    <>
+      <RouteSeo />
+      <Routes>
       <Route path="/auth" element={<Auth />} />
       <Route path="/trial" element={<TrialSignup />} />
       
@@ -91,6 +101,7 @@ function AppRoutes() {
       <Route path="/trade-secrets" element={<ProtectedRoute adminOnly><TradeSecretRegistry /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </>
   );
 }
 
