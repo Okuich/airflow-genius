@@ -1251,7 +1251,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      claim_org_ownership: { Args: { org_name: string }; Returns: string }
       has_org_role: {
         Args: {
           _org_id: string
