@@ -30,7 +30,7 @@ import SDKGenerator from "./pages/SDKGenerator";
 import APIPlayground from "./pages/APIPlayground";
 import PatentPortfolio from "./pages/PatentPortfolio";
 import TradeSecretRegistry from "./pages/TradeSecretRegistry";
-import DevClaimOrg from "./pages/DevClaimOrg";
+
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -68,7 +68,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/auth" element={<Auth />} />
       <Route path="/trial" element={<TrialSignup />} />
-      <Route path="/dev-claim-org" element={<DevClaimOrg />} />
+      
       <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
       <Route path="/builder" element={<ProtectedRoute><Builder /></ProtectedRoute>} />
       <Route path="/viewer" element={<ProtectedRoute><Viewer /></ProtectedRoute>} />
